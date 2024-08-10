@@ -70,7 +70,8 @@ backend/
    ```env
    PORT=5000
    MONGO_URI=mongodb://localhost:27017/chatter
-   JWT_SECRET=your_jwt_secret_key
+   JWT_SECRET=majidi_chatter_secret_key
+   REDIS_URL=redis://localhost:6379
    ```
 
    Replace `your_jwt_secret_key` with a strong secret key for JWT.
@@ -83,28 +84,28 @@ backend/
 
 In the project directory, you can run the following scripts:
 
-- **`npm run start:dev`**: 
+- **`npm run start:dev`**:
   - This command uses `nodemon` to start the server in development mode. Nodemon watches for file changes and automatically restarts the server.
   
   ```bash
   npm run start:dev
   ```
 
-- **`npm run build`**: 
+- **`npm run build`**:
   - This command compiles the TypeScript code from the `src/` directory into JavaScript in the `build/` directory. It uses `rimraf` to clean the previous build before compiling.
 
   ```bash
   npm run build
   ```
 
-- **`npm start`**: 
+- **`npm start`**:
   - This command first compiles the TypeScript code and then starts the server using the compiled JavaScript files from the `build/` directory.
 
   ```bash
   npm start
   ```
 
-- **`npm run lint`**: 
+- **`npm run lint`**:
   - This command runs ESLint to analyze the code for potential issues and enforce coding standards. It checks all files within the `src/` directory.
 
   ```bash
@@ -119,6 +120,7 @@ The following routes are available for user authentication:
 
 - **`POST /api/auth/register`**: Registers a new user.
   - **Request Body**:
+
     ```json
     {
       "username": "string",
@@ -126,18 +128,21 @@ The following routes are available for user authentication:
       "password": "string"
     }
     ```
+
   - **Response**:
     - Success: `201 Created` with a message `User registered successfully`.
     - Failure: `500 Internal Server Error` with an error message.
 
 - **`POST /api/auth/login`**: Logs in an existing user.
   - **Request Body**:
+
     ```json
     {
       "email": "string",
       "password": "string"
     }
     ```
+
   - **Response**:
     - Success: `200 OK` with a JWT token.
     - Failure: `400 Bad Request` with a message `Invalid credentials`.
@@ -155,12 +160,14 @@ These routes handle user profile management:
 - **`PUT /api/users/me`**: Updates the profile of the logged-in user.
   - **Headers**: `Authorization: Bearer <JWT>`
   - **Request Body**:
+
     ```json
     {
       "username": "string",
       "email": "string"
     }
     ```
+
   - **Response**:
     - Success: `200 OK` with the updated user profile data.
     - Failure: `400 Bad Request` or `401 Unauthorized`.
@@ -172,12 +179,14 @@ These routes handle sending and receiving messages between users:
 - **`POST /api/messages`**: Sends a new message.
   - **Headers**: `Authorization: Bearer <JWT>`
   - **Request Body**:
+
     ```json
     {
       "to": "userId",
       "message": "string"
     }
     ```
+
   - **Response**:
     - Success: `201 Created` with message details.
     - Failure: `400 Bad Request` or `401 Unauthorized`.
@@ -203,7 +212,8 @@ The backend relies on the following environment variables:
 - **`PORT`**: The port on which the server will run (default: `5000`).
 - **`MONGO_URI`**: The URI for connecting to the MongoDB database.
 - **`JWT_SECRET`**: A secret key used for signing and verifying JWT tokens.
+- **`REDIS_URL`**: The URL for connecting to the Redis server.
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](../LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
