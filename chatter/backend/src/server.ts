@@ -1,17 +1,21 @@
-import express, { Application, Request, Response } from 'express';
+import express from 'express';
 import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import authRoutes from './routes/auth';
 
 dotenv.config();
 
-const app: Application = express();
-const PORT = process.env.PORT || 5000;
+const app = express();
 
 app.use(express.json());
 
-app.get('/', (req: Request, res: Response) => {
-    res.send('Welcome to Chatter API');
-});
+mongoose
+    .connect(process.env.MONGO_URI!)
+    .then(() => console.log('MongoDB connected'))
+    .catch((err) => console.error('MongoDB connection failed:', err));
 
-app.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
+app.use('/api/users', authRoutes);
+
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
