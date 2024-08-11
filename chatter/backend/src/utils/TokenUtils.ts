@@ -1,5 +1,9 @@
 import jwt from 'jsonwebtoken';
 import redisClient from '../models/redisClient';
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * Generates a token for the given user ID.
@@ -7,7 +11,7 @@ import redisClient from '../models/redisClient';
  * @param id - The user ID.
  * @returns The generated token.
  */
-const generateToken = (id: string) => {
+const generateToken = (id: string, type: string) => {
     const token: string = jwt.sign({ id }, process.env.JWT_SECRET!, {
         expiresIn: '30d',
     });
@@ -15,9 +19,9 @@ const generateToken = (id: string) => {
     const DaysForExpiration: number = 30;
 
     redisClient.setEx(
-        token,
+        token.toString(),
         DaysForExpiration * 24 * 60 * 60,
-        JSON.stringify({ id }),
+        JSON.stringify({ id, type }),
     );
 
     return token;
@@ -49,4 +53,135 @@ const getUserIdByToken = async (token: string) => {
     return null;
 };
 
-export { generateToken, removeToken, getUserIdByToken };
+const removeAllTokens = async (userId: string, type: string): Promise<void> => {
+    try {
+        const keys = await redisClient.keys('*');
+        console.log(`Found ${keys.length} keys`); // Log the number of keys found
+
+        for (const key of keys) {
+            console.log(`Processing key: ${key}`); // Log each key being processed
+            const cachedToken = await redisClient.get(key);
+
+            if (cachedToken) {
+                let shouldDelete = false;
+                try {
+                    const { id, type: tokenType } = JSON.parse(cachedToken);
+                    console.log(`Parsed token for key ${key}:`, { id, tokenType });
+
+                    if (id === userId && type === tokenType) {
+                        shouldDelete = true;
+                    }
+                } catch (parseError) {
+                    console.warn(`Skipping non-JSON value for key ${key}:`, cachedToken);
+                    shouldDelete = true;
+                }
+
+                if (shouldDelete) {
+                    const result = await redisClient.del(key);
+                    if (result === 1) {
+                        console.log(`Successfully deleted key: ${key}`);
+                    } else {
+                        console.warn(`Failed to delete key: ${key}`);
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error removing tokens:', error);
+    }
+};
+
+
+/**
+ * Generates a verification token for a given user ID.
+ *
+ * @param userId - The ID of the user.
+ * @returns A promise that resolves to the generated verification token.
+ */
+const generateVerificationToken = async (userId: string): Promise<string> => {
+    const verificationToken = jwt.sign({ userId }, process.env.JWT_SECRET!, {
+        expiresIn: '1h',
+    });
+
+    // Store the token in Redis with a 1-hour expiration time
+    await redisClient.setEx(verificationToken, 3600, userId);
+
+    return verificationToken;
+};
+
+/**
+ * Creates a transporter for sending emails.
+ * 
+ * @remarks
+ * This function creates a nodemailer transporter using the provided configuration.
+ * The transporter can be used to send emails using the Gmail service.
+ * 
+ * @returns The created transporter.
+ */
+const transporter = nodemailer.createTransport({
+    service: 'Gmail', // You can use other services or SMTP config
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+    },
+});
+
+/**
+ * Sends a verification email to the specified email address.
+ * 
+ * @param email - The email address to send the verification email to.
+ * @param verificationUrl - The URL to include in the verification email.
+ * @returns A promise that resolves when the email is sent successfully.
+ */
+const sendVerificationEmail = async (
+    email: string,
+    verificationUrl: string,
+) => {
+    const mailOptions = {
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: 'Email Verification',
+        html: `<p>Please verify your email by clicking the following link: <a href="${verificationUrl}">Verify Email</a></p>`,
+    };
+
+    await transporter.sendMail(mailOptions);
+};
+
+/**
+ * Verifies the validity of a token.
+ * 
+ * @param token - The token to be verified.
+ * @returns A promise that resolves to the decoded token if it is valid, otherwise null.
+ */
+const verifyToken = async (token: string) => {
+    const tokenCache = await redisClient.get(token);
+
+    if (!tokenCache) {
+        return null;
+    }
+    
+    const decoded = await new Promise((resolve, reject) => {
+        jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(decoded);
+            }
+        });
+    });
+
+    if (decoded) {
+        return jwt.verify(token, process.env.JWT_SECRET!);
+    }
+    return null;
+};
+
+export {
+    generateToken,
+    removeToken,
+    removeAllTokens,
+    getUserIdByToken,
+    generateVerificationToken,
+    sendVerificationEmail,
+    verifyToken,
+};
