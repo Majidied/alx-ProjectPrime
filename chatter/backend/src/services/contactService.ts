@@ -23,8 +23,9 @@ export const addContact = async (
     if (existingContact) {
         throw new Error("Contact already exists");
     }
-
-    const newContact = new Contact({ userId, contactId });
+    // sort the IDs to ensure consistency
+    const [id1, id2] = [userId, contactId].sort();
+    const newContact = new Contact({ userId: id1, contactId: id2 });
     return await newContact.save();
 };
 
@@ -43,7 +44,8 @@ export const getContact = async (
         throw new Error("User ID and contact ID are required");
     }
 
-    return await Contact.findOne({ userId, contactId });
+    const [id1, id2] = [userId, contactId].sort();
+    return await Contact.findOne({ userId: id1, contactId: id2 });
 }
 
 /**
@@ -75,5 +77,6 @@ export const removeContact = async (
         throw new Error("User ID and contact ID are required");
     }
 
-    await Contact.deleteOne({ userId, contactId });
+    const [id1, id2] = [userId, contactId].sort();
+    await Contact.deleteOne({ userId: id1, contactId: id2 });
 }
