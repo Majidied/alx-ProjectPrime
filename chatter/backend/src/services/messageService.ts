@@ -1,24 +1,27 @@
 import Message, { IMessage } from '../models/message';
 
-export const createMessage = async (senderId: string, recipientId: string, message: string): Promise<IMessage> => {
-  const newMessage = new Message({ senderId, recipientId, message });
+/**
+ * Creates a new message and saves it to the database.
+ * 
+ * @param senderId - The ID of the sender of the message.
+ * @param recipientId - The ID of the recipient of the message.
+ * @param message - The content of the message.
+ * @param contactId - The ID of the contact associated with the message.
+ * @returns A Promise that resolves to the created message.
+ */
+export const createMessage = async (senderId: string, recipientId: string, message: string, contactId: string): Promise<IMessage> => {
+  const newMessage = new Message({ senderId, recipientId, message, contactId});
   return await newMessage.save();
 };
 
 /**
- * Retrieves messages between two users.
+ * Retrieves messages between users based on the provided contact ID.
  * 
- * @param senderId - The ID of the sender user.
- * @param recipientId - The ID of the recipient user.
+ * @param contactId - The ID of the contact.
  * @returns A promise that resolves to an array of messages.
  */
-export const getMessagesBetweenUsers = async (senderId: string, recipientId: string): Promise<IMessage[]> => {
-  return await Message.find({
-    $or: [
-      { senderId, recipientId },
-      { senderId: recipientId, recipientId: senderId },
-    ],
-  }).sort({ timestamp: 1 });
+export const getMessagesBetweenUsers = async (contactId: string): Promise<IMessage[]> => {
+  return await Message.find({ contactId }).sort({ createdAt: 1 });
 };
 
 /**

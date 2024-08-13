@@ -23,15 +23,15 @@ interface CustomRequest extends Request {
  * @returns A JSON response with the created message.
  */
 export const sendMessage = async (req: CustomRequest, res: Response) => {
-    const { senderId, recipientId, message } = req.body;
+    const { senderId, recipientId, message, contactId } = req.body;
 
-    if (!senderId || !recipientId || !message) {
-        return res.status(400).json({ error: "Missing senderId, recipientId, or message" });
+    if (!senderId || !recipientId || !message || !contactId) {
+        return res.status(400).json({ error: "Missing senderId, recipientId, message, or contactId" });
     }
 
     try {
         // Save the message to the database (assuming you have a Message model)
-        const newMessage = await createMessage(senderId, recipientId, message);
+        const newMessage = await createMessage(senderId, recipientId, message, contactId);
 
         // Find the recipient's socketId
         const recipientUser = await getUserByUsername(recipientId);
@@ -61,16 +61,24 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
  * @returns A JSON response with the messages between the two users.
  */
 export const getMessages = async (req: Request, res: Response) => {
-    const { senderId, recipientId } = req.body;
-
-    if (!senderId || !recipientId) {
-        return res.status(400).json({ error: "Missing senderId or recipientId" });
+    const { contactId } = req.params;
+    
+    if (!contactId) {
+        return res.status(400).json({ error: "Missing contactId" });
     }
 
     try {
-        // Retrieve messages between the two users
-        const messages = await getMessagesBetweenUsers(senderId, recipientId);
+        // Get messages between the two users
+        const messages = await getMessagesBetweenUsers(contactId);
 
+        // Get the sender and recipient IDs
+        const senderId = messages.length > 0 ? messages[0].senderId : null;
+        const recipientId = messages.length > 0 ? messages[0].recipientId : null;
+
+        if (!senderId || !recipientId) {
+            return res.status(400).json({ error: "Invalid senderId or recipientId" });
+        }
+        
         // Mark messages as seen
         await markMessagesAsSeen(senderId, recipientId);
 
