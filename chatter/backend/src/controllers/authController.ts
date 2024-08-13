@@ -100,7 +100,14 @@ export const authUser = async (req: Request, res: Response) => {
                 token: generateToken(user._id as unknown as string, 'auth'),
             });
         } else {
-            res.status(400).json({ message: 'User not verified' });
+            res.status(400).json({
+                message: 'User not verified',
+                error: 'Please verify your email to login',
+                token: generateToken(
+                    user._id as unknown as string,
+                    'verification',
+                ),
+            });
         }
     } else {
         res.status(401).json({ error: 'Invalid email or password' });
@@ -209,6 +216,13 @@ export const ValidateUser = async (req: Request, res: Response) => {
     }
 };
 
+/**
+ * Resends a verification email to the user.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response indicating the status of the operation.
+ */
 export const resendVerificationEmail = async (req: Request, res: Response) => {
     const authHeader = req.headers.authorization;
 

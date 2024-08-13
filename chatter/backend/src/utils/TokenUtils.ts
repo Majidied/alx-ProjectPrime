@@ -1,5 +1,5 @@
 import jwt from 'jsonwebtoken';
-import redisClient from '../models/redisClient';
+import redisClient from '../config/redisClient';
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
@@ -53,13 +53,27 @@ const getUserIdByToken = async (token: string) => {
     return null;
 };
 
+/**
+ * Removes all tokens associated with a specific user and type from the Redis cache.
+ * 
+ * @param userId - The ID of the user.
+ * @param type - The type of the token.
+ * @returns A Promise that resolves to void.
+ * @throws If there is an error removing the tokens.
+ */
 const removeAllTokens = async (userId: string, type: string): Promise<void> => {
     try {
         const keys = await redisClient.keys('*');
-        console.log(`Found ${keys.length} keys`); // Log the number of keys found
+        console.log(`Found ${keys.length} keys`);
 
         for (const key of keys) {
-            console.log(`Processing key: ${key}`); // Log each key being processed
+            console.log(`Processing key: ${key}`);
+            const keyType = await redisClient.type(key);
+            if (keyType !== 'string') {
+                console.warn(`Skipping non-string key ${key} of type ${keyType}`);
+                await redisClient.del(key);
+                continue;
+            }
             const cachedToken = await redisClient.get(key);
 
             if (cachedToken) {

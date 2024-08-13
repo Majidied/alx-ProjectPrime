@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Request, Response, NextFunction } from 'express';
 import User, { IUser } from '../models/user';
-import redisClient from '../models/redisClient';
+import redisClient from '../config/redisClient';
 
 interface JwtPayload {
     id: string;
