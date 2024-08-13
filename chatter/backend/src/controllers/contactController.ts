@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { getUserIdByToken } from '../utils/TokenUtils';
+import { getUserSocketId } from '../services/socketService';
 import { userExists } from '../services/userService';
 import {
     addContact,
@@ -7,6 +8,56 @@ import {
     getContact,
     removeContact,
 } from '../services/contactService';
+
+import { Server } from 'socket.io';
+
+interface CustomRequest extends Request {
+    io?: Server;
+}
+
+/**
+ * Send a contact request.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response with the result of the contact request.
+ */
+export const sendContactRequest = async (req: CustomRequest, res: Response) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const userId = await getUserIdByToken(token as string);
+
+    if (!userId) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    // should send a contact request to the recipient
+    const { recipientId } = req.body;
+
+    if (!recipientId) {
+        return res.status(400).json({ error: 'Missing recipientId' });
+    }
+
+    try {
+        const user = await userExists(recipientId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const recipientSocketId = await getUserSocketId(recipientId);
+        if (recipientSocketId && req.io) {
+            req.io
+                .to(recipientSocketId)
+                .emit('contactRequest', { senderId: userId });
+        }
+
+        return res.status(201).json({ message: 'Contact request sent' });
+    } catch (error) {
+        console.error('Error sending contact request:', error);
+        return res
+            .status(500)
+            .json({ error: 'Failed to send contact request' });
+    }
+};
 
 /**
  * Add a new contact.
