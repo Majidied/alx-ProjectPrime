@@ -2,11 +2,13 @@ import express from 'express';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import messageRoutes from './routes/msg';
+import contactRoutes from './routes/contact';
 import connectDB from './config/db';
 import cors from 'cors';
 import { createServer } from 'http';
 import { connectSocket } from './config/socket';
 import chatSocket from './sockets/chatSocket';
+
 
 dotenv.config();
 
@@ -31,6 +33,7 @@ app.use(express.json());
 
 app.use('/api/users', authRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/contacts', contactRoutes);
 
 connectDB();
 chatSocket(io);

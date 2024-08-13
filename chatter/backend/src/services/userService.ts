@@ -93,3 +93,14 @@ export const updateUserProfile = async (
     }
     return null;
 };
+
+/**
+ * Check if a user exists.
+ *
+ * @param id - The ID of the user.
+ * @returns A promise that resolves with a boolean indicating whether the user exists.
+ * @throws None.
+ */
+export const userExists = async (id: string): Promise<boolean> => {
+    return !!(await User.findById(id));
+};
