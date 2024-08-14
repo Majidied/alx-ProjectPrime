@@ -22,6 +22,7 @@ const _handleRegisterUser = (socket: Socket) => {
     socket.on('registerUser', async ({ userId }: { userId: string }) => {
         await storeUserSocketId(userId, socket.id);
         console.log(`User registered: ${userId}`);
+        socket.broadcast.emit('userOnline', { userId });
     });
 };
 
@@ -34,6 +35,7 @@ const _handleDisconnect = (socket: Socket) => {
     socket.on('disconnect', async () => {
         await deleteUserSocketId(socket.id);
         console.log(`User disconnected: ${socket.id}`);
+        socket.broadcast.emit('userOffline', { socketId: socket.id });
     });
 };
 
