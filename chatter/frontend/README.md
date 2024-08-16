@@ -1,50 +1,84 @@
-# React + TypeScript + Vite
+# Chat Application Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Description
 
-Currently, two official plugins are available:
+This is the frontend of a real-time chat application, built using React and Tailwind CSS. It allows users to communicate in real-time, with features like user authentication and responsive design.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Getting Started
 
-## Expanding the ESLint configuration
+### Prerequisites
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Node.js
+- npm or yarn
 
-- Configure the top-level `parserOptions` property like this:
+### Installation
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/majidied/chatter.git
+   ```
+
+2. Navigate to the frontend directory:
+
+   ```bash
+   cd chatter/frontend
+   ```
+
+3. Install dependencies:
+
+   ```bash
+   npm install
+   ```
+
+### Running the Project
+
+To start the development server:
+
+```bash
+npm start
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## Project Structure
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
-
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
 ```
+frontend/
+│── src/
+│   │── components/
+│   │── pages/
+│   │── context/
+│   │── hooks/
+│   │── styles/
+│   └── App.tsx
+└── public/
+```
+
+## Features
+
+- Real-time messaging with Socket.io
+- JWT-based user authentication
+- Responsive design with Tailwind CSS
+
+## Technologies Used
+
+- React
+- Tailwind CSS
+- Socket.io
+
+## Screenshots
+
+*(Include screenshots here)*
+
+## Contributing
+
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+## License
+
+[MIT](LICENSE)
+
+## Contact Information
+
+- **Name**: Mohammed Majidi
+- **Email**: <mohammedmajidi321@gmail.com>
+- **GitHub**: [majidied](https://github.com/majidied)
