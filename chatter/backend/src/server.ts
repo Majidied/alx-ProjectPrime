@@ -10,7 +10,6 @@ import { createServer } from 'http';
 import { connectSocket } from './config/socket';
 import chatSocket from './sockets/chatSocket';
 
-
 dotenv.config();
 
 const app = express();
@@ -25,13 +24,14 @@ const PORT = process.env.PORT || 5000;
 
 app.use(
     cors({
-        origin: '*', // Replace with your frontend origin
+        origin: 'http://localhost:3000',
         methods: 'GET,POST,PUT,DELETE',
         allowedHeaders: 'Content-Type',
     }),
 );
+app.get('/api/', (req, res) => res.send('API is running'));
 app.use(express.json());
-
+app.use(express.urlencoded({ extended: true }));
 app.use('/api/users', authRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/contacts', contactRoutes);
