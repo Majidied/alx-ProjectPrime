@@ -4,6 +4,14 @@ import fs from 'fs';
 import { deleteFileById, deleteFileFromServer, getFileById, getFileByIdentifier } from '../services/fileService';
 import { getUserIdByToken } from '../utils/TokenUtils';
 
+
+/**
+ * Handles file upload.
+ * 
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns The response indicating the status of the file upload.
+ */
 export const handleFileUpload = (req: Request, res: Response) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
