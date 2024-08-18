@@ -1,0 +1,66 @@
+{
+  "contacts": [
+    {
+      "id": "contact789",
+      "userId": "user123",
+      "contactId": "user456"
+    },
+    {
+      "id": "contact101",
+      "userId": "user456",
+      "contactId": "user123"
+    }
+  ],
+  "files": [
+    {
+      "identifier": "file001",
+      "fileType": "image/png",
+      "filePath": "/uploads/images/file001.png",
+      "dateUploaded": "2024-08-17T10:45:00Z"
+    },
+    {
+      "identifier": "file002",
+      "fileType": "application/pdf",
+      "filePath": "/uploads/docs/file002.pdf",
+      "dateUploaded": "2024-08-16T14:30:00Z"
+    }
+  ],
+  "messages": [
+    {
+      "id": "message001",
+      "senderId": "user123",
+      "recipientId": "user456",
+      "message": "Hello, how are you?",
+      "seen": false,
+      "contactId": "contact789",
+      "timestamp": "2024-08-17T11:00:00Z"
+    },
+    {
+      "id": "message002",
+      "senderId": "user456",
+      "recipientId": "user123",
+      "message": "I'm good, thanks!",
+      "seen": true,
+      "contactId": "contact789",
+      "timestamp": "2024-08-17T11:02:00Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "user123",
+      "name": "John Doe",
+      "username": "johndoe",
+      "email": "johndoe@example.com",
+      "password": "hashedpassword123",
+      "verified": true
+    },
+    {
+      "id": "user456",
+      "name": "Jane Smith",
+      "username": "janesmith",
+      "email": "janesmith@example.com",
+      "password": "hashedpassword456",
+      "verified": false
+    }
+  ]
+}
