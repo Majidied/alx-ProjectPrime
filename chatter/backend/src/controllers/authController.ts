@@ -21,7 +21,7 @@ export const registerUser = async (req: Request, res: Response) => {
     const { name, username, email, password } = req.body;
 
     if (!name || !username || !email || !password) {
-        res.status(400).json({ message: 'Please fill in all fields' });
+        res.status(400).json({ error: 'Please fill in all fields' });
         return;
     }
 
@@ -64,9 +64,6 @@ export const registerUser = async (req: Request, res: Response) => {
             });
 
         res.status(201).json({
-            name: user.name,
-            username: user.username,
-            email: user.email,
             token: generateToken(user._id as unknown as string, 'auth'),
             message:
                 'User registered successfully, Please verify your email to confirm registration',
