@@ -57,7 +57,7 @@ export const getUserById = async (id: string): Promise<object> => {
 
   const response = await axios.get(`/api/users/${id}`, { headers });
   return response.data;
-}
+};
 
 export const getUserProfile = async () => {
   const token = localStorage.getItem('token');
@@ -119,4 +119,31 @@ export const logout = async () => {
 
   const response = await axios.post('/api/users/logout', {}, { headers });
   return response.data;
+};
+
+export const getUserStatus = async (id: string): Promise<boolean> => {
+  try {
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      throw new Error('No token found');
+    }
+
+    const headers = {
+      Authorization: `Bearer ${token}`,
+    };
+
+    const response = await axios.get(`/api/users/user-status/${id}`, {
+      headers,
+    });
+
+    if (response.status === 200 && response.data) {
+      return response.data.isOnline;
+    }
+
+    return false;
+  } catch (error) {
+    console.error('Error fetching user status:', error);
+    return false;
+  }
 };

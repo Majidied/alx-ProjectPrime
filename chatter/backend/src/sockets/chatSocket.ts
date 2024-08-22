@@ -4,6 +4,7 @@ import {
     deleteUserSocketId,
 } from '../services/socketService';
 import { getUserIdByToken } from '../utils/TokenUtils';
+import { updateUserStatus } from '../utils/userStatus';
 
 const chatSocket = (io: SocketIOServer) => {
     io.on('connection', (socket: Socket) => {
@@ -32,6 +33,7 @@ const _handleRegisterUser = async (socket: Socket) => {
     }
     console.log(`Storing socket ID for user ${userId}`);
     await storeUserSocketId(userId, socket.id);
+    await updateUserStatus(userId, true);
     socket.broadcast.emit('userOnline', { userId });
 };
 
@@ -40,11 +42,22 @@ const _handleRegisterUser = async (socket: Socket) => {
  *
  * @param socket - The socket object.
  */
-const _handleDisconnect = (socket: Socket) => {
+const _handleDisconnect = async (socket: Socket) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        console.log('No token provided');
+        return;
+    }
+    const userId = await getUserIdByToken(token);
+    if (!userId) {
+        console.log('Invalid token, unable to retrieve user ID');
+        return;
+    }
     socket.on('disconnect', async () => {
         await deleteUserSocketId(socket.id);
         console.log(`User disconnected: ${socket.id}`);
-        socket.broadcast.emit('userOffline', { socketId: socket.id });
+        await updateUserStatus(userId, false);
+        socket.broadcast.emit('userOffline', { userId });
     });
 };
 

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, IconButton, Badge, Link } from '@mui/material';
+import { Grid, IconButton, Badge } from '@mui/material';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import socket from '../../utils/socket';
 import NotificationDropdown from './NotificationDropdown';
 import { getContactRequests } from '../../utils/Contact';
+import { useNavigate } from 'react-router-dom';
 
 export default function UserBar() {
   const [notifications, setNotifications] = useState<number>(0);
@@ -56,6 +57,8 @@ export default function UserBar() {
     setDropdownOpen(false);
   };
 
+  const navigate = useNavigate();
+
   return (
     <Grid container alignItems="center" justifyContent="space-between" className="p-2 bg-gray-200 border rounded-md" style={{ position: 'relative' }}>
       <Grid item>
@@ -74,9 +77,12 @@ export default function UserBar() {
           <SettingsIcon />
         </IconButton>
         <IconButton size="small" className="text-red-600">
-          <Link href="/logout" className='underline'>
-            <LogoutIcon />
-          </Link>
+          <LogoutIcon 
+            onClick={() => {
+              localStorage.removeItem('token');
+              navigate('/logout');
+            }}
+          />
         </IconButton>
       </Grid>
     </Grid>

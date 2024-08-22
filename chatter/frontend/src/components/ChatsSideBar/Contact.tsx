@@ -2,7 +2,8 @@ import { Avatar, Badge, Box, Typography } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
 import { useEffect, useState } from 'react';
 import { Contact } from '../../utils/Contact';
-import { getUserContact, getContactAvatar } from '../../utils/User';
+import { getUserContact, getContactAvatar, getUserStatus } from '../../utils/User';
+import socket from '../../utils/socket';
 
 interface ContactItemProps {
   contactId: string;
@@ -11,6 +12,7 @@ interface ContactItemProps {
 export default function ContactItem({ contactId }: ContactItemProps) {
   const [contact, setContact] = useState<Contact | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
     const fetchContact = async () => {
@@ -33,13 +35,36 @@ export default function ContactItem({ contactId }: ContactItemProps) {
       }
     };
 
+    const checkUserStatus = async () => {
+      const onlineStatus = await getUserStatus(contactId);
+      setIsOnline(onlineStatus);
+    }
+
     fetchContact();
     fetchAvatar();
+    checkUserStatus();
+
+    // Listen for online and offline events
+    socket.on('userOnline', ({ userId }) => {
+      if (userId === contactId) {
+        setIsOnline(true);
+        console.log(`User ${userId} is online`);
+      }
+    });
+
+    socket.on('userOffline', ({ userId }) => {
+      if (userId === contactId) {
+        setIsOnline(false);
+        console.log(`User ${userId} is offline`);
+      }
+    });
 
     return () => {
       if (avatarUrl) {
         URL.revokeObjectURL(avatarUrl); // Clean up the object URL
       }
+      socket.off('userOnline'); // Remove the event listener to prevent memory leaks
+      socket.off('userOffline'); // Remove the event listener to prevent memory leaks
     };
   }, [contactId, avatarUrl]);
 
@@ -52,10 +77,12 @@ export default function ContactItem({ contactId }: ContactItemProps) {
           overlap="circular"
           anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           badgeContent={
-            <CircleIcon
-              className="text-green-500"
-              style={{ width: 12, height: 12 }}
-            />
+            isOnline && (
+              <CircleIcon
+                className="text-green-500"
+                style={{ width: 12, height: 12 }}
+              />
+            )
           }
         >
           <Avatar
