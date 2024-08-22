@@ -4,6 +4,7 @@ import { ProtectedRoute } from './ProtectedRoute';
 import Login from '../pages/Login';
 import Logout from '../pages/Logout';
 import Register from '../pages/Register';
+import ChatPage from '../pages/ChatPage';
 
 const Routes = () => {
   const { token } = useAuth();
@@ -31,8 +32,8 @@ const Routes = () => {
           element: <div>User Home Page</div>,
         },
         {
-          path: '/profile',
-          element: <div>User Profile</div>,
+          path: '/chat',
+          element: <ChatPage />,
         },
         {
           path: '/logout',
