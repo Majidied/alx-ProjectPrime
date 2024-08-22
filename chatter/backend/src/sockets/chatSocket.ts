@@ -3,6 +3,7 @@ import {
     storeUserSocketId,
     deleteUserSocketId,
 } from '../services/socketService';
+import { getUserIdByToken } from '../utils/TokenUtils';
 
 const chatSocket = (io: SocketIOServer) => {
     io.on('connection', (socket: Socket) => {
@@ -18,12 +19,20 @@ const chatSocket = (io: SocketIOServer) => {
  *
  * @param socket - The socket object.
  */
-const _handleRegisterUser = (socket: Socket) => {
-    socket.on('registerUser', async ({ userId }: { userId: string }) => {
-        await storeUserSocketId(userId, socket.id);
-        console.log(`User registered: ${userId}`);
-        socket.broadcast.emit('userOnline', { userId });
-    });
+const _handleRegisterUser = async (socket: Socket) => {
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        console.log('No token provided');
+        return;
+    }
+    const userId = await getUserIdByToken(token);
+    if (!userId) {
+        console.log('Invalid token, unable to retrieve user ID');
+        return;
+    }
+    console.log(`Storing socket ID for user ${userId}`);
+    await storeUserSocketId(userId, socket.id);
+    socket.broadcast.emit('userOnline', { userId });
 };
 
 /**
