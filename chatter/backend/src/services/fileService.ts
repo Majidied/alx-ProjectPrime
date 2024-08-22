@@ -28,7 +28,7 @@ export const createFile = async (
 export const getFileByIdentifier = async (identifier: string): Promise<IFile> => {
     const file = await File.findOne({ identifier });
     if (!file) {
-        throw new Error('File not found');
+        return null as any;
     }
     return file;
 }
