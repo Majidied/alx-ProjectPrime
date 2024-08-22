@@ -37,7 +37,6 @@ export const getProfilePicture = async (req: Request, res: Response) => {
 
     try {
         const file = await getFileByIdentifier(userId);
-        console.log(file);
 
         if (!file || !file.filePath || !file.fileType) {
             return res.status(404).json({ message: 'File not found' });
@@ -78,11 +77,9 @@ export const getProfilePicture = async (req: Request, res: Response) => {
  */
 export const getFile = async (req: Request, res: Response) => {
     const { identifier } = req.params;
-    console.log(identifier);
 
     try {
         const file = await getFileByIdentifier(identifier);
-        console.log(file);
 
         if (!file || !file.filePath || !file.fileType) {
             return res.status(404).json({ message: 'File not found' });

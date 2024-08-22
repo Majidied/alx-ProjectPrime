@@ -5,7 +5,7 @@ import { Request } from 'express';
 import { getUploadPath } from '../utils/getUploadPath';
 import directories from '../config/directories';
 import { getIdentifier } from '../utils/getIdentifier';
-import { createFile } from '../services/fileService';
+import { createFile, deleteFileById } from '../services/fileService';
 
 /**
  * Multer disk storage configuration.
@@ -58,7 +58,7 @@ const storage = multer.diskStorage({
                 '',
             );
         }
-
+        await deleteFileById(identifier);
         await createFile(
             identifier,
             fileType as string,
