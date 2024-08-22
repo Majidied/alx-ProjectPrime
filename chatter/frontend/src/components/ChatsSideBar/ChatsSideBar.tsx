@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Grid,
   Drawer,
@@ -13,11 +13,13 @@ import UserBar from './UserBar';
 import AddIcon from '@mui/icons-material/Add';
 import SearchUserModal from './SearchUserModal';
 import { Contact } from '../../utils/Contact';
+import { User, getUserProfile } from '../../utils/User';
 
 function ChatsSideBar({ contacts }: { contacts: Contact[] }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [isModalOpen, setModalOpen] = useState(false);
+  const [userProfile, setUserProfile] = useState<User | null>(null);
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -26,6 +28,20 @@ function ChatsSideBar({ contacts }: { contacts: Contact[] }) {
   const handleCloseModal = () => {
     setModalOpen(false);
   };
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const user = await getUserProfile();
+        console.log('UserId:', user._id);
+        setUserProfile(user);
+      } catch (error) {
+        console.error('Failed to fetch user profile:', error);
+      }
+    };
+
+    fetchUserProfile();
+  }, []);
 
   return (
     <>
@@ -70,11 +86,17 @@ function ChatsSideBar({ contacts }: { contacts: Contact[] }) {
           {/* Contact List in the middle */}
           <Grid item xs className="overflow-y-auto mt-2">
             <Grid container direction="column" spacing={2}>
-            {contacts.map((contact) => (
-            <Grid item key={contact.id}>
-              <ContactItem contactId={contact.contactId} />
-            </Grid>
-          ))}
+              {contacts.map((contact) => (
+                <Grid item key={contact.id}>
+                  <ContactItem
+                    contactId={
+                      userProfile && userProfile._id === contact.userId
+                        ? contact.contactId
+                        : contact.userId
+                    }
+                  />
+                </Grid>
+              ))}
             </Grid>
           </Grid>
 

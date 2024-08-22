@@ -93,7 +93,11 @@ export async function getUserAvatar() {
 }
 
 export const getContactAvatar = async (id: string): Promise<string> => {
-  const response = await axios.get(`/api/files/profile/${id}`);
+  const token = localStorage.getItem('token');
+  const response = await axios.get(`/api/files/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+    responseType: 'blob',
+  });
   return response.data;
 };
 

@@ -2,16 +2,19 @@ import { useEffect } from 'react';
 import { Alert } from '@mui/material';
 
 interface NotificationProps {
-  type: 'success' | 'error';
+  type: 'success' | 'error' | 'warning'; // Added 'warning'
   message: string;
   onClose: () => void;
 }
 
 const Notification = ({ type, message, onClose }: NotificationProps) => {
+  // Set background color based on the type of notification
   const backgroundColor =
     type === 'success'
       ? 'bg-green-400 border-green-500'
-      : 'bg-red-400 border-red-500';
+      : type === 'error'
+      ? 'bg-red-400 border-red-500'
+      : 'bg-yellow-400 border-yellow-500'; // Added 'warning' case
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -17,6 +17,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import { searchUser, User } from '../../utils/User';
 import { sendContactRequest } from '../../utils/Contact';
 import Notification from '../Notification/Notification';
+import { AxiosError } from 'axios';
 
 function SearchUserModal({
   open,
@@ -44,8 +45,9 @@ function SearchUserModal({
     } catch (error) {
       console.error('Failed to send friend request:', error);
       setNotification({
-        type: 'error',
-        message: 'Failed to send friend request. Please try again.',
+        type: 'warning',
+        message: ((error as AxiosError).response?.data as { error: string })
+          ?.error || 'An error occurred. Please try again.',
         visible: true,
       });
     }

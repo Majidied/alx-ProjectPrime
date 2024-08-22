@@ -63,6 +63,19 @@ export const sendContactRequest = async (recipientId: string) => {
   return response.data;
 }
 
+export const getContactRequests = async () => {
+  const token = localStorage.getItem('token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await axios.get('/api/contacts/get-requests', { headers });
+  console.log(response.data);
+
+  return response.data;
+}
+
 export const createContact = async (contactId: string) => {
   const token = localStorage.getItem('token');
 

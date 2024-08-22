@@ -25,7 +25,7 @@ const Login = () => {
       const response = await login(email, password);
       if (response && (response as { token: string }).token) {
         setToken((response as { token: string }).token);
-        navigate('/profile', { replace: true });
+        navigate('/chat', { replace: true });
       } else {
         setError(
           'Oops! It looks like your credentials are incorrect. Please try again.'
