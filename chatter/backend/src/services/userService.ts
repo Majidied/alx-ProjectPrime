@@ -16,7 +16,7 @@ export const getAllUsers = async (): Promise<IUser[]> => {
  * @returns A promise that resolves with the user if found, otherwise null.
  */
 export const getUserById = async (id: string): Promise<IUser | null> => {
-    if (!id) return await User.findById(id);
+    if (id) return await User.findById(id);
     return null;
 };
 
@@ -27,7 +27,7 @@ export const getUserById = async (id: string): Promise<IUser | null> => {
  * @returns A promise that resolves with the user if found, otherwise null.
  */
 export const getUserByEmail = async (email: string): Promise<IUser | null> => {
-    if (!email) return await User.findOne({ email });
+    if (email) return await User.findOne({ email });
     return null;
 };
 
@@ -40,7 +40,7 @@ export const getUserByEmail = async (email: string): Promise<IUser | null> => {
 export const getUserByUsername = async (
     username: string,
 ): Promise<IUser | null> => {
-    if (!username) return await User.findOne({ username });
+    if (username) return await User.findOne({ username });
     return null;
 };
 
