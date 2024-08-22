@@ -59,7 +59,14 @@ export const getContacts = async (userId: string): Promise<IContact[]> => {
         throw new Error("User ID is required");
     }
 
-    return await Contact.find({ userId });
+    const contacts = await Contact.find({
+        $or: [
+            { userId: userId },
+            { contactId: userId },
+        ]
+    });
+
+    return contacts;
 }
 
 /**
@@ -79,4 +86,14 @@ export const removeContact = async (
 
     const [id1, id2] = [userId, contactId].sort();
     await Contact.deleteOne({ userId: id1, contactId: id2 });
+}
+
+export const contactExists = async ( userId: string, contactId: string): Promise<boolean> => {
+    if (!userId || !contactId) {
+        throw new Error("User ID and contact ID are required");
+    }
+
+    const [id1, id2] = [userId, contactId].sort();
+    const contact = await Contact.findOne({ userId: id1, contactId: id2 });
+    return !!contact;
 }

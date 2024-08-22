@@ -7,6 +7,7 @@ import {
     getContacts,
     getContact,
     removeContact,
+    contactExists,
 } from '../services/contactService';
 
 import { Server } from 'socket.io';
@@ -44,6 +45,7 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
         }
 
         const recipientSocketId = await getUserSocketId(recipientId);
+        console.log('Recipient socket ID:', recipientSocketId);
         if (recipientSocketId && req.io) {
             req.io
                 .to(recipientSocketId)
@@ -79,6 +81,10 @@ export const createContact = async (req: Request, res: Response) => {
         const user = await userExists(contactId);
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
+        }
+
+        if (await contactExists(userId, contactId)) {
+            return res.status(400).json({ error: 'Contact already exists' });
         }
 
         const contact = await addContact(userId, contactId);
