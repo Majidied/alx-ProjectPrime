@@ -9,6 +9,11 @@ import {
     removeContact,
     contactExists,
 } from '../services/contactService';
+import {
+    setContactRequest,
+    getContactRequests,
+    checkContactRequest,
+} from '../utils/contactReqeust';
 
 import { Server } from 'socket.io';
 
@@ -44,6 +49,17 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        const contactRequestExists = await checkContactRequest(
+            userId,
+            recipientId,
+        );
+        if (contactRequestExists) {
+            return res
+                .status(400)
+                .json({ error: 'Contact request already sent' });
+        }
+
+        await setContactRequest(userId, recipientId);
         const recipientSocketId = await getUserSocketId(recipientId);
         console.log('Recipient socket ID:', recipientSocketId);
         if (recipientSocketId && req.io) {
@@ -58,6 +74,35 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
         return res
             .status(500)
             .json({ error: 'Failed to send contact request' });
+    }
+};
+
+/**
+ * Retrieves contact requests for a user.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response containing the contact requests or an error message.
+ */
+export const getContactRequestsForUser = async (
+    req: Request,
+    res: Response,
+) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const userId = await getUserIdByToken(token as string);
+
+    if (!userId) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    try {
+        const contactRequests = await getContactRequests(userId);
+        return res.status(200).json(contactRequests);
+    } catch (error) {
+        console.error('Error getting contact requests:', error);
+        return res
+            .status(500)
+            .json({ error: 'Failed to get contact requests' });
     }
 };
 
