@@ -23,6 +23,26 @@ export const setContactRequest = async (
 };
 
 /**
+ * Removes a contact request for a user.
+ *
+ * @param userId - The ID of the user sending the contact request.
+ * @param contactId - The ID of the user receiving the contact request.
+ * @returns A promise that resolves to void.
+ * @throws An error if the contact request fails to be removed.
+ */
+export const removeContactRequest = async (
+    userId: string,
+    contactId: string,
+): Promise<void> => {
+    try {
+        await redisClient.sRem(contactId, userId);
+    } catch (error) {
+        console.error('Failed to remove contact request:', error);
+        throw new Error('Failed to remove contact request');
+    }
+}
+
+/**
  * Retrieves the contact requests for a given user.
  *
  * @param userId - The ID of the user.

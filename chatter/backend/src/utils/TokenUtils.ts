@@ -48,7 +48,14 @@ const removeToken = (token: string, func: CallableFunction) => {
 const getUserIdByToken = async (token: string) => {
     const cachedToken = await redisClient.get(token);
     if (cachedToken) {
-        return JSON.parse(cachedToken).id;
+        try {
+            const parsedToken = JSON.parse(cachedToken);
+            if (parsedToken && parsedToken.id) {
+                return parsedToken.id;
+            }
+        } catch (error) {
+            return cachedToken;
+        }
     }
     return null;
 };

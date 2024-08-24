@@ -85,7 +85,7 @@ export const registerUser = async (req: Request, res: Response) => {
 export const authUser = async (req: Request, res: Response) => {
     const { email, password } = req.body;
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: email.toLowerCase() });
 
     if (user && (await user.matchPassword(password))) {
         if (user.verified) {
@@ -195,7 +195,7 @@ export const ValidateUser = async (req: Request, res: Response) => {
                 user.verified = true;
                 await user.save();
 
-                await removeToken(token, () => {});
+                removeToken(token, () => { });
 
                 return res
                     .status(200)

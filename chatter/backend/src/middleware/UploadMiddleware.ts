@@ -58,9 +58,9 @@ const storage = multer.diskStorage({
                 '',
             );
         }
-        await deleteFileById(identifier);
+        await deleteFileById(identifier as string);
         await createFile(
-            identifier,
+            identifier as string,
             fileType as string,
             getUploadPath(req.path, fileType as string),
         );
