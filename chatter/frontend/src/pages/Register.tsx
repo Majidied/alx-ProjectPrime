@@ -1,26 +1,62 @@
 import { AxiosError } from 'axios';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import { Input, Button, Alert } from '@mui/material';
+import { Input, Button, Alert, AlertColor } from '@mui/material';
 import { register } from '../utils/User';
-import Notification from '../components/Notification/Notification';
 
 const Register = () => {
   const { setToken } = useAuth();
   const navigate = useNavigate();
+
   const [notification, setNotification] = useState({
     type: '',
     message: '',
     visible: false,
   });
 
-  const [name, setName] = useState('');
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const { name, username, email, password, confirmPassword } = formData;
   const isPasswordMatch = password === confirmPassword;
+
+  const isValidEmail = useCallback(
+    (email: string) =>
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254,
+    []
+  );
+
+  const isValidPassword = useCallback(
+    (password: string) =>
+      password.length >= 8 &&
+      /[a-z]/.test(password) &&
+      /[A-Z]/.test(password) &&
+      /\d/.test(password) &&
+      /\W/.test(password),
+    []
+  );
+
+  const isValidUsername = useCallback(
+    (username: string) => /^[^\s]+$/.test(username) && username.length >= 3,
+    []
+  );
+
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    },
+    [setFormData]
+  );
 
   const handleRegister = async () => {
     if (!isPasswordMatch) {
@@ -32,11 +68,39 @@ const Register = () => {
       return;
     }
 
+    if (!isValidEmail(email)) {
+      setNotification({
+        type: 'error',
+        message: 'Invalid email format. Please enter a valid email.',
+        visible: true,
+      });
+      return;
+    }
+
+    if (!isValidPassword(password)) {
+      setNotification({
+        type: 'error',
+        message:
+          'Password must be at least 8 characters long, contain at least one lowercase letter, one uppercase letter, one number, and one special character.',
+        visible: true,
+      });
+      return;
+    }
+
+    if (!isValidUsername(username)) {
+      setNotification({
+        type: 'error',
+        message: 'Username should be at least 3 characters long and contain no spaces.',
+        visible: true,
+      });
+      return;
+    }
+
     try {
       const response = await register(name, username, email, password);
 
-      if (response && 'token' in response) {
-        setToken(response.token as string);
+      if (response) {
+        setToken((response as { token: string })?.token);
         setNotification({
           type: 'success',
           message: 'Registration successful! Redirecting...',
@@ -46,27 +110,26 @@ const Register = () => {
       }
     } catch (error) {
       console.error('Registration error:', error);
-      if ((error as AxiosError).isAxiosError) {
-        setNotification({
-          type: 'error',
-          message:
-            ((error as AxiosError).response?.data as { error: string })
-              ?.error || 'An error occurred. Please try again.',
-          visible: true,
-        });
-      }
+      const errorMessage =
+        (error as AxiosError<{ error: string }>)?.response?.data?.error ||
+        'An error occurred. Please try again.';
+      setNotification({
+        type: 'error',
+        message: errorMessage,
+        visible: true,
+      });
     }
   };
 
   return (
     <div
-      className="flex flex-col items-center justify-center h-screen bg-amber-100"
+      className="flex flex-col items-center justify-center min-h-screen bg-amber-100"
       style={{ backgroundImage: 'linear-gradient(to right, #7FA1C3, #4E31AA)' }}
     >
-      <section className="bg-white flex flex-col md:flex-row items-center justify-center h-3/4 rounded-lg backdrop-blur-md">
+      <section className="bg-white flex flex-col md:flex-row items-center justify-center w-full max-w-4xl rounded-lg shadow-lg overflow-hidden backdrop-blur-md">
         <div
-          className="bg-cover bg-center p-8 rounded-lg shadow-lg w-full md:w-1/2 h-full flex-col justify-center items-center text-center hidden md:flex"
-          style={{ backgroundImage: `url('src/assets/register.jpg')` }}
+          className="hidden md:flex flex-col items-center justify-center bg-cover bg-center h-full w-1/2 rounded-l-lg p-28"
+          style={{ backgroundImage: `url('src/assets/register.jpg')`}}
         >
           <h1 className="text-5xl font-bold text-black mb-4 bg-gradient-to-r from-cyan-600 to-violet-900 bg-clip-text text-transparent">
             Join <span>Chatter</span>!
@@ -75,7 +138,7 @@ const Register = () => {
             Sign up to connect with your friends and family.
           </p>
         </div>
-        <div className="flex-col items-center justify-center bg-white p-8 rounded-lg shadow-lg w-full h-screen md:w-1/2 md:h-full">
+        <div className="flex flex-col items-center justify-center bg-white p-8 md:p-12 w-full md:w-1/2 h-auto md:h-full">
           <div
             className="bg-cover bg-center h-64 flex flex-col items-center justify-center rounded-lg md:hidden"
             style={{ backgroundImage: `url('src/assets/register.jpg')` }}
@@ -88,53 +151,61 @@ const Register = () => {
           <p className="mb-4 text-gray-700">
             Please fill in the form to create an account.
           </p>
-          <div className="w-full p-4">
+          <div className="w-full">
             {notification.visible && (
-              <Notification
-                type={notification.type as 'success' | 'error'}
-                message={notification.message}
-                onClose={() =>
-                  setNotification({ ...notification, visible: false })
-                }
-              />
+              <Alert
+                severity={notification.type as AlertColor}
+                onClose={() => setNotification({ ...notification, visible: false })}
+                className="mb-4"
+              >
+                {notification.message}
+              </Alert>
             )}
-            <div className="flex flex-col md:flex-row">
-              <label className="block text-sm font-medium text-gray-700">
-                Full Name
-              </label>
-              <Input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="mb-4 p-2 w-full"
-                placeholder="Enter your name"
-              />
-              <label className="block text-sm font-medium text-gray-700">
-                Username
-              </label>
-              <Input
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mb-4 p-2 w-full"
-                placeholder="Enter your username"
-              />
+            <div className="flex flex-col md:flex-row md:space-x-4">
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700">
+                  Full Name
+                </label>
+                <Input
+                  name="name"
+                  value={name}
+                  onChange={handleChange}
+                  className="mb-4 p-2 w-full"
+                  placeholder="Enter your name"
+                />
+              </div>
+              <div className="w-full">
+                <label className="block text-sm font-medium text-gray-700">
+                  Username
+                </label>
+                <Input
+                  name="username"
+                  value={username}
+                  onChange={handleChange}
+                  className="mb-4 p-2 w-full"
+                  placeholder="Enter your username"
+                />
+              </div>
             </div>
             <label className="block text-sm font-medium text-gray-700">
               Email
             </label>
             <Input
+              name="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleChange}
               className="mb-4 p-2 w-full"
               placeholder="Enter your email address"
             />
-            <div className="flex flex-col md:flex-row">
-              <div className="w-full md:w-1/2 mb-4">
+            <div className="flex flex-col md:flex-row md:space-x-4">
+              <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <Input
+                  name="password"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={handleChange}
                   type="password"
                   className={`mb-2 p-2 w-full ${
                     !isPasswordMatch && confirmPassword !== ''
@@ -145,13 +216,14 @@ const Register = () => {
                 />
               </div>
 
-              <div className="w-full md:w-1/2 mb-4">
+              <div className="w-full">
                 <label className="block text-sm font-medium text-gray-700">
                   Confirm Password
                 </label>
                 <Input
+                  name="confirmPassword"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={handleChange}
                   type="password"
                   className={`mb-2 p-2 w-full ${
                     !isPasswordMatch && confirmPassword !== ''
@@ -159,12 +231,6 @@ const Register = () => {
                       : ''
                   }`}
                   placeholder="Confirm your password"
-                  style={{
-                    borderColor:
-                      !isPasswordMatch && confirmPassword !== '' ? 'red' : '',
-                    color:
-                      !isPasswordMatch && confirmPassword !== '' ? 'red' : '',
-                  }}
                 />
                 {!isPasswordMatch && confirmPassword !== '' && (
                   <Alert severity="error" className="text-sm">
@@ -177,7 +243,7 @@ const Register = () => {
           <Button
             onClick={handleRegister}
             variant="contained"
-            className="bg-blue-500 text-white w-full p-2 mb-4"
+            className="bg-blue-500 text-white w-full p-2 mt-4"
           >
             Register
           </Button>
