@@ -8,12 +8,10 @@ export const useUnseenMessages = (senderId: string, contactId: string) => {
   useEffect(() => {
     const fetchInitialUnseenMessages = async () => {
       try {
-        console.log('Sender ID:', senderId + ' Contact ID:', contactId);
         const initialUnseenMessages = await getUnseenMessages(
           senderId,
           contactId
         );
-        console.log('Initial unseen messages:', initialUnseenMessages);
         setUnseenMessages(initialUnseenMessages.count);
       } catch (error) {
         console.error('Failed to fetch initial unseen messages:', error);
@@ -22,23 +20,21 @@ export const useUnseenMessages = (senderId: string, contactId: string) => {
 
     fetchInitialUnseenMessages();
 
-    socket.on('connect', () => {
-      console.log('Connected to socket with ID:', socket.id);
-    });
-
-    socket.on('message', ({ contactId }) => {
-      console.log('Received message from:', contactId);
-      setUnseenMessages((prev) => prev + 1);
+    socket.on('newMessage', ({ newMessage }) => {
+      if (newMessage.senderId === senderId) {
+        console.log('New message received:', newMessage);
+        setUnseenMessages((prev) => prev + 1);
+      }
     });
 
     return () => {
-      socket.off('message');
+      socket.off('newMessage');
     };
   }, [contactId]);
 
-  const decreaseUnseenMessages = () => {
-    setUnseenMessages((prev) => Math.max(0, prev - 1));
+  const resetUnseenMessages = () => {
+    setUnseenMessages(0);
   };
 
-  return { unseenMessages, decreaseUnseenMessages };
+  return { unseenMessages, resetUnseenMessages };
 };

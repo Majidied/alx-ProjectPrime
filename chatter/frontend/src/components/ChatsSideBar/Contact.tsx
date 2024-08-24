@@ -12,20 +12,30 @@ interface ContactItemProps {
   id: string;
   contactId: string;
   onClick: () => void;
+  searchQuery: string; // Accept search query as prop
 }
 
 export default function ContactItem({
   id,
   contactId,
   onClick,
+  searchQuery,
 }: ContactItemProps) {
   const contact = useContact(contactId);
-  const { unseenMessages } = useUnseenMessages(contactId, id);
+  const { unseenMessages, resetUnseenMessages } = useUnseenMessages(
+    contactId,
+    id
+  );
   const avatarUrl = useAvatar(contactId);
   const isOnline = useUserStatus(contactId);
   const lastMessageLocal = useLastMessage(id);
   const { lastMessages } = useMessageContext();
   const lastMessage = lastMessages[id];
+
+  // Skip rendering if the contact name does not match the search query
+  if (contact?.name && !contact.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+    return null;
+  }
 
   // Timestamps
   const lastMessageTimestamp = lastMessage?.timestamp
@@ -36,34 +46,40 @@ export default function ContactItem({
     : 0;
 
   // Formatted Time
-  const lastMessageTime =
-    new Date(lastMessage?.timestamp ?? 0).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    }) || '';
+  const lastMessageTime = new Date(
+    lastMessage?.timestamp || 0
+  ).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-  const lastMessageLocalTime =
-    new Date(lastMessageLocal?.timestamp ?? 0).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
-    }) || '';
+  const lastMessageLocalTime = new Date(
+    lastMessageLocal?.timestamp || 0
+  ).toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
   // Determine the most recent message and its time
-  const finalMessage =
-    lastMessageTimestamp < lastMessageLocalTimestamp
-      ? (lastMessageLocal?.recipientId === contactId
-          ? 'You:' + lastMessageLocal?.message
-          : lastMessageLocal?.message) || 'No recent messages'
-      : 'You:' + lastMessage?.message || 'No recent messages';
+  const isLocalMessageMoreRecent =
+    lastMessageLocalTimestamp > lastMessageTimestamp;
 
-  const finalMessageTime =
-    lastMessageTimestamp < lastMessageLocalTimestamp
-      ? lastMessageLocalTime || '10:00 AM'
-      : lastMessageTime || '10:00 AM';
+  const finalMessage = isLocalMessageMoreRecent
+    ? `${lastMessageLocal?.recipientId === contactId ? 'You: ' : ''}${lastMessageLocal?.message || 'No recent messages'}`
+    : `You: ${lastMessage?.message || 'No recent messages'}`;
+
+  const finalMessageTime = isLocalMessageMoreRecent
+    ? lastMessageLocalTime
+    : lastMessageTime;
+
+  const handleOnClick = () => {
+    resetUnseenMessages();
+    onClick();
+  };
 
   return (
     <Box
-      onClick={onClick}
+      onClick={handleOnClick}
       className="flex items-center justify-between p-1 ml-4 mr-4 bg-white rounded-lg shadow-md hover:bg-gray-100 hover:shadow-lg transition duration-200 ease-in-out transform hover:scale-105 cursor-pointer"
     >
       <Box className="flex items-center">
@@ -86,11 +102,9 @@ export default function ContactItem({
           />
         </Badge>
         <Box ml={2}>
-          <div className="flex items-center justify-between">
-            <Typography className="text-gray-900 font-semibold text-base">
-              {contact?.name || 'Unknown Name'}
-            </Typography>
-          </div>
+          <Typography className="text-gray-900 font-semibold text-base">
+            {contact?.name || 'Unknown Name'}
+          </Typography>
           <Typography
             variant="body2"
             className="text-gray-600 text-sm truncate w-40"

@@ -12,6 +12,7 @@ import {
 } from '../services/messageService';
 
 import { Server } from 'socket.io';
+import { getUserIdByToken } from '../utils/TokenUtils';
 
 interface CustomRequest extends Request {
     io?: Server;
@@ -28,11 +29,9 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
     const { senderId, recipientId, message, contactId } = req.body;
 
     if (!senderId || !recipientId || !message || !contactId) {
-        return res
-            .status(400)
-            .json({
-                error: 'Missing senderId, recipientId, message, or contactId',
-            });
+        return res.status(400).json({
+            error: 'Missing senderId, recipientId, message, or contactId',
+        });
     }
 
     try {
@@ -50,7 +49,7 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
         const recipientSocketId = recipientUser
             ? await getUserSocketId(recipientUser.id)
             : null;
-            console.log(recipientSocketId);
+        console.log(recipientSocketId);
         if (recipientUser && recipientSocketId && req.io) {
             // Emit the message to the recipient using Socket.IO
             req.io.to(recipientSocketId).emit('newMessage', {
@@ -74,8 +73,12 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
  */
 export const getMessages = async (req: Request, res: Response) => {
     const { contactId } = req.params;
+    const token = req.headers.authorization?.split(' ')[1];
+    const user = await getUserIdByToken(token as string);
+    if (!user) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+    }
 
-    console.log(contactId);
     if (!contactId) {
         return res.status(400).json({ error: 'Missing contactId' });
     }
@@ -85,18 +88,23 @@ export const getMessages = async (req: Request, res: Response) => {
         const messages = await getMessagesBetweenUsers(contactId);
 
         // Get the sender and recipient IDs
-        const senderId = messages.length > 0 ? messages[0].senderId : null;
-        const recipientId =
-            messages.length > 0 ? messages[0].recipientId : null;
+        const senderId =
+            messages.length > 0
+                ? messages[0].senderId === user
+                    ? messages[0].recipientId
+                    : messages[0].senderId
+                : null;
 
-        if (!senderId || !recipientId) {
+        if (!senderId) {
             return res
                 .status(400)
                 .json({ error: 'Invalid senderId or recipientId' });
         }
 
         // Mark messages as seen
-        await markMessagesAsSeen(senderId, recipientId);
+        await markMessagesAsSeen(senderId, user).then(() => {
+            console.log('Messages marked as seen');
+        });
 
         return res.status(200).json(messages);
     } catch (error) {
@@ -200,4 +208,4 @@ export const getUnseenMessages = async (req: Request, res: Response) => {
         console.error('Error getting unseen messages:', error);
         return res.status(500).json({ error: 'Failed to get unseen messages' });
     }
-}
+};
