@@ -55,7 +55,7 @@ const UserAvatar: React.FC = () => {
       display="flex"
       alignItems="center"
       p={2}
-      bgcolor="background.paper"
+      bgcolor="#D1E9F6"
       borderRadius="12px"
     >
       <IconButton component="label" sx={{ ml: 2 }}>

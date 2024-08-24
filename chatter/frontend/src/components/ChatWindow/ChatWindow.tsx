@@ -44,13 +44,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ contact }) => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-gray-100 p-2">
+    <div className="flex flex-col h-screen bg-gray-100 p-2 rounded-md">
       {contact && userProfile && (
         <>
           <UserBar recipientId={contact.userId === userProfile._id ? contact.contactId : contact.userId} />
           <MessageList
             contactId={contact._id as string}
             ownerId={userProfile._id as string}
+            recipientId={contact.userId === userProfile._id ? contact.contactId : contact.userId}
             ref={messageListRef}
           />
           <InputArea

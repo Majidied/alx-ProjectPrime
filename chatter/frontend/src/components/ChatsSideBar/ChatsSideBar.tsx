@@ -21,8 +21,10 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
   const handleCloseModal = () => setModalOpen(false);
 
   return (
-    <>
-      <Grid container direction="column" className="h-full p-2">
+    <div className='p-1 h-full bg-gray-100'>
+      <Grid container direction="column" className="h-full p-2 rounded-md"
+      style={{ backgroundImage: 'linear-gradient(180deg, #96C9F4 0%, #E2BFD9 100%)' }}
+>
         {/* User Avatar */}
         <Grid item>
           <UserAvatar />
@@ -30,7 +32,7 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
 
         {/* Chats Section Divider */}
         <Divider sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-          <span className="font-mono text-gray-600 text-lg">Chats</span>
+          <span className="font-mono text-black text-lg">Chats</span>
         </Divider>
 
         {/* Search Bar and Add Button */}
@@ -43,8 +45,9 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
             />
             <IconButton
               color="primary"
-              className="bg-blue-500 hover:bg-blue-800 text-white p-2 rounded-full"
+              className="hover:bg-blue-800 text-white rounded-full"
               onClick={handleOpenModal}
+              sx={{ backgroundColor: 'white' }}
             >
               <AddIcon />
             </IconButton>
@@ -81,7 +84,7 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
 
       {/* Search User Modal */}
       <SearchUserModal open={isModalOpen} onClose={handleCloseModal} />
-    </>
+    </div>
   );
 }
 

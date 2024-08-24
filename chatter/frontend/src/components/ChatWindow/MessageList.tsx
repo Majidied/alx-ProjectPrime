@@ -2,16 +2,20 @@ import React, { useRef, useImperativeHandle, forwardRef, useEffect } from 'react
 import { Avatar } from '@mui/material';
 import { useMessages } from '../../hooks/useMessages';
 import { Message } from '../../utils/Message';
+import { useAvatar } from '../../hooks/useAvatar';
 
 interface MessageListProps {
   contactId: string;
   ownerId: string;
+  recipientId: string;
 }
 
 const MessageList = forwardRef<{ addMessage: (message: Message) => void }, MessageListProps>(
-  ({ contactId, ownerId }, ref) => {
+  ({ contactId, ownerId, recipientId }, ref) => {
     const { messages, addMessage } = useMessages(contactId);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const avatar = useAvatar(recipientId);
+    const userAvatar = useAvatar(ownerId);
 
     useImperativeHandle(ref, () => ({
       addMessage(newMessage: Message) {
@@ -39,7 +43,7 @@ const MessageList = forwardRef<{ addMessage: (message: Message) => void }, Messa
           >
             {message.senderId !== ownerId && (
               <Avatar
-                src={''}
+                src={avatar || ''}
                 className="bg-gray-200"
                 sx={{ width: 40, height: 40 }}
               />
@@ -63,7 +67,7 @@ const MessageList = forwardRef<{ addMessage: (message: Message) => void }, Messa
             </div>
             {message.senderId === ownerId && (
               <Avatar
-                src={''}
+                src={userAvatar || ''}
                 className="bg-blue-500 text-white"
                 sx={{ width: 40, height: 40 }}
               />

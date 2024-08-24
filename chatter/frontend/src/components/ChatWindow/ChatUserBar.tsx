@@ -13,7 +13,8 @@ const UserBar: React.FC<UserBarProps> = ({ recipientId }) => {
   
 
   return (
-    <div className="flex items-center justify-between h-16 bg-white p-2 border rounded-lg">
+    <div className="flex items-center justify-between h-16 bg-white p-2 border rounded-lg"
+    style={{ backgroundImage: 'linear-gradient(135deg, #96C9F4 0%, #E2BFD9 100%)' }}>
       <div className="flex items-center space-x-4">
         <Avatar src={avatarUrl ?? '/path/to/default-avatar.png'} />
         <h1 className="text-xl font-semibold">{contact?.name || 'Unknown'}</h1>

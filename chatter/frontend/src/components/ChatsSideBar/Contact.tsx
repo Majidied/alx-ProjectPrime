@@ -37,10 +37,16 @@ export default function ContactItem({
 
   // Formatted Time
   const lastMessageTime =
-    lastMessage?.timestamp?.split('T')[1].split('.')[0].slice(0, -3) || '';
+    new Date(lastMessage?.timestamp ?? 0).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }) || '';
 
   const lastMessageLocalTime =
-    lastMessageLocal?.timestamp?.split('T')[1].split('.')[0].slice(0, -3) || '';
+    new Date(lastMessageLocal?.timestamp ?? 0).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+    }) || '';
 
   // Determine the most recent message and its time
   const finalMessage =
@@ -95,7 +101,7 @@ export default function ContactItem({
       </Box>
       <Box className="flex flex-col items-end ml-4">
         <Typography variant="body2" className="text-gray-500 text-xs mb-1">
-          {finalMessageTime}
+          {finalMessageTime.split(' ')[0]}
         </Typography>
         <Badge
           badgeContent={unseenMessages || 0}

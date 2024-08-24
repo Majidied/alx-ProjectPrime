@@ -10,7 +10,7 @@ function ChatPage() {
   const [contacts, setContacts] = useState([] as Contact[]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   useEffect(() => {
     const fetchContacts = async () => {
