@@ -168,3 +168,36 @@ export const uploadAvatar = async (file: File): Promise<object> => {
 
   return response.data;
 };
+
+export const isVerifiedUser = async (): Promise<boolean> => {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await axios.get('/api/users/is-verified', { headers });
+
+  return response.data.isVerified;
+}
+
+export const resendValidationEmail = async (): Promise<object> => {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await axios.post('/api/users/resend-verification', {}, { headers });
+
+  return response.data;
+}
+

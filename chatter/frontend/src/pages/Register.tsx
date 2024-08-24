@@ -106,7 +106,7 @@ const Register = () => {
           message: 'Registration successful! Redirecting...',
           visible: true,
         });
-        setTimeout(() => navigate('/home', { replace: true }), 3000);
+        setTimeout(() => navigate('/validate', { replace: true }), 3000);
       }
     } catch (error) {
       console.error('Registration error:', error);

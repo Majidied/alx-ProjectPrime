@@ -4,18 +4,23 @@ import {
   useTheme,
   useMediaQuery,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import { getContacts } from '../utils/Contact';
 import { Contact } from '../utils/Contact';
 import { MessageProvider } from '../contexts/MessageContext';
 import ChatsSideBar from '../components/ChatsSideBar/ChatsSideBar';
 import ChatWindow from '../components/ChatWindow/ChatWindow';
+import useVerification from '../hooks/useVerification';
 
 function ChatPage() {
   const [contacts, setContacts] = useState([] as Contact[]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const [loading, setLoading] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
+  useVerification();
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -24,6 +29,8 @@ function ChatPage() {
         setContacts(contacts);
       } catch (error) {
         console.error('Failed to fetch contacts:', error);
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -54,10 +61,23 @@ function ChatPage() {
               backgroundColor: '#f5f5f5',
             }}
           >
-            <ChatsSideBar
-              contacts={contacts}
-              onSelectContact={setSelectedContact}
-            />
+            {loading ? (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                }}
+              >
+                <CircularProgress />
+              </div>
+            ) : (
+              <ChatsSideBar
+                contacts={contacts}
+                onSelectContact={setSelectedContact}
+              />
+            )}
           </Grid>
         ) : null}
 

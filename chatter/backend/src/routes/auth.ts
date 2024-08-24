@@ -6,6 +6,7 @@ import {
     logoutUser,
     ValidateUser,
     resendVerificationEmail,
+    isVerifiedUser,
 } from '../controllers/authController';
 import { protect } from '../middleware/authMiddleware';
 
@@ -17,5 +18,6 @@ router.route('/profile').get(protect, getUserProfile);
 router.route('/logout').post(protect, logoutUser);
 router.route('/verify/:token').get(ValidateUser);
 router.route('/resend-verification').post(protect, resendVerificationEmail);
+router.route('/is-verified').get(protect, isVerifiedUser);
 
 export default router;

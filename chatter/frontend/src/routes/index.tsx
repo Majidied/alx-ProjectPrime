@@ -5,6 +5,7 @@ import Login from '../pages/Login';
 import Logout from '../pages/Logout';
 import Register from '../pages/Register';
 import ChatPage from '../pages/ChatPage';
+import WaitingForValidation from '../pages/WaitingForValidation';
 
 const Routes = () => {
   const { token } = useAuth();
@@ -39,6 +40,10 @@ const Routes = () => {
           path: '/logout',
           element: <Logout />,
         },
+        {
+          path: '/verify',
+          element: <WaitingForValidation />,
+        }
       ],
     },
   ];

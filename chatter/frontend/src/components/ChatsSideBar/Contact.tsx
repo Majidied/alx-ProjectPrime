@@ -1,4 +1,3 @@
-import React from 'react';
 import { Avatar, Badge, Box, Typography } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
 import { useContact } from '../../hooks/useContact';

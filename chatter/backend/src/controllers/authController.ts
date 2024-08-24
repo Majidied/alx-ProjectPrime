@@ -9,6 +9,12 @@ import {
     verifyToken,
     removeAllTokens,
 } from '../utils/TokenUtils';
+import { Server } from 'socket.io';
+
+interface CustomRequest extends Request {
+    io?: Server;
+}
+
 
 /**
  * Registers a new user.
@@ -88,24 +94,13 @@ export const authUser = async (req: Request, res: Response) => {
     const user = await User.findOne({ email: email.toLowerCase() });
 
     if (user && (await user.matchPassword(password))) {
-        if (user.verified) {
-            res.status(200).json({
-                message: 'User logged in successfully',
-                name: user.name,
-                username: user.username,
-                email: user.email,
-                token: generateToken(user._id as unknown as string, 'auth'),
-            });
-        } else {
-            res.status(400).json({
-                message: 'User not verified',
-                error: 'Please verify your email to login',
-                token: generateToken(
-                    user._id as unknown as string,
-                    'verification',
-                ),
-            });
-        }
+        res.status(200).json({
+            message: 'User logged in successfully',
+            name: user.name,
+            username: user.username,
+            email: user.email,
+            token: generateToken(user._id as unknown as string, 'auth'),
+        });
     } else {
         res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -174,7 +169,7 @@ export const logoutUser = (req: Request, res: Response) => {
  * @returns A JSON response indicating whether the user was successfully
  * verified or if the token is invalid.
  */
-export const ValidateUser = async (req: Request, res: Response) => {
+export const ValidateUser = async (req: CustomRequest, res: Response) => {
     try {
         const token = req.params.token;
         if (!token) {
@@ -195,7 +190,11 @@ export const ValidateUser = async (req: Request, res: Response) => {
                 user.verified = true;
                 await user.save();
 
-                removeToken(token, () => { });
+                if (req.io) {
+                    req.io.emit('user-verified', { userId: user._id });
+                }
+
+                removeToken(token, () => {});
 
                 return res
                     .status(200)
@@ -266,5 +265,31 @@ export const resendVerificationEmail = async (req: Request, res: Response) => {
         return res
             .status(500)
             .json({ message: 'Internal Server Error', error });
+    }
+};
+
+/**
+ * Checks if the user is verified.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response indicating whether the user is verified or not.
+ */
+export const isVerifiedUser = async (req: Request, res: Response) => {
+    const userId = await getUserIdByToken(
+        req.headers.authorization?.split(' ')[1] as string,
+    );
+    if (userId) {
+        const user = await User.findById(userId);
+
+        if (user) {
+            res.json({
+                isVerified: user.verified,
+            });
+        } else {
+            res.status(404).json({ error: 'User not found' });
+        }
+    } else {
+        res.status(401).json({ error: 'Unauthorized' });
     }
 };

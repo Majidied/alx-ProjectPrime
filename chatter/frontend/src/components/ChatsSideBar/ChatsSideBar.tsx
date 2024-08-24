@@ -66,7 +66,7 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
               color="primary"
               className="hover:bg-blue-800 text-white rounded-full"
               onClick={handleOpenModal}
-              sx={{ backgroundColor: 'white' }}
+              sx={{ backgroundColor: 'white', marginRight: '1rem', marginLeft: '1rem' }}
             >
               <AddIcon />
             </IconButton>
