@@ -1,13 +1,14 @@
 import { Avatar, IconButton } from '@mui/material';
-import { Call, VideoCall, MoreVert } from '@mui/icons-material';
+import { Call, VideoCall, MoreVert, ArrowBack } from '@mui/icons-material';
 import { useAvatar } from '../../hooks/useAvatar';
 import { useContact } from '../../hooks/useContact';
 
 interface UserBarProps {
   recipientId: string;
+  handleBackClick?: () => void;
 }
 
-const UserBar: React.FC<UserBarProps> = ({ recipientId }) => {
+const UserBar: React.FC<UserBarProps> = ({ recipientId, handleBackClick }) => {
   const contact = useContact(recipientId);
   const avatarUrl = useAvatar(recipientId);
   
@@ -15,6 +16,11 @@ const UserBar: React.FC<UserBarProps> = ({ recipientId }) => {
   return (
     <div className="flex items-center justify-between h-16 bg-white p-2 border rounded-lg"
     style={{ backgroundImage: 'linear-gradient(135deg, #96C9F4 0%, #E2BFD9 100%)' }}>
+      {handleBackClick && (
+        <IconButton onClick={handleBackClick}>
+          <ArrowBack />
+        </IconButton>
+      )}
       <div className="flex items-center space-x-4">
         <Avatar src={avatarUrl ?? '/path/to/default-avatar.png'} />
         <h1 className="text-xl font-semibold">{contact?.name || 'Unknown'}</h1>

@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Grid, useTheme, useMediaQuery, Typography } from '@mui/material';
+import {
+  Grid,
+  useTheme,
+  useMediaQuery,
+  Typography,
+} from '@mui/material';
 import { getContacts } from '../utils/Contact';
 import { Contact } from '../utils/Contact';
 import { MessageProvider } from '../contexts/MessageContext';
@@ -25,51 +30,74 @@ function ChatPage() {
     fetchContacts();
   }, []);
 
+  const handleBackClick = () => {
+    setSelectedContact(null);
+  };
+
   return (
-    <Grid container direction={isMobile ? 'column' : 'row'} className="h-screen">
+    <Grid
+      container
+      direction={isMobile ? 'column' : 'row'}
+      className="h-screen"
+    >
       <MessageProvider>
-      <Grid
-        item
-        xs={12}
-        md={4}
-        style={{
-          display: isMobile ? 'none' : 'block',
-          width: isMobile ? '100%' : '350px',
-          maxWidth: isMobile ? '100%' : '350px',
-          overflowY: 'auto',
-          borderRight: '1px solid rgba(0, 0, 0, 0.12)',
-          backgroundColor: '#f5f5f5',
-        }}
-      >
-        <ChatsSideBar contacts={contacts} onSelectContact={setSelectedContact} />
-      </Grid>
-      <Grid
-        item
-        xs={12}
-        md={8}
-        style={{
-          width: isMobile ? '100%' : 'calc(100% - 350px)',
-          maxWidth: isMobile ? '100%' : 'calc(100% - 350px)',
-          flexGrow: 1,
-        }}
-      >
-        {selectedContact ? (
-          <ChatWindow contact={selectedContact} />
-        ) : (
-          <div
+        {!isMobile || !selectedContact ? (
+          <Grid
+            item
+            xs={12}
+            md={4}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
+              width: isMobile ? '100%' : '350px',
+              maxWidth: isMobile ? '100%' : '350px',
+              overflowY: 'auto',
+              borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+              backgroundColor: '#f5f5f5',
             }}
           >
-            <Typography variant="h6" color="textSecondary" align="center">
-              Please select a contact to start chatting.
-            </Typography>
-          </div>
-        )}
-      </Grid>
+            <ChatsSideBar
+              contacts={contacts}
+              onSelectContact={setSelectedContact}
+            />
+          </Grid>
+        ) : null}
+
+        {(isMobile && selectedContact) || !isMobile ? (
+          <Grid
+            item
+            xs={12}
+            md={8}
+            style={{
+              width: isMobile ? '100%' : 'calc(100% - 350px)',
+              maxWidth: isMobile ? '100%' : 'calc(100% - 350px)',
+              flexGrow: 1,
+            }}
+          >
+            {selectedContact ? (
+              <div>
+                {isMobile && (
+                  <ChatWindow
+                    contact={selectedContact}
+                    handleBackClick={handleBackClick}
+                  />
+                )}
+                {!isMobile && <ChatWindow contact={selectedContact} />}
+              </div>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" color="textSecondary" align="center">
+                  Please select a contact to start chatting.
+                </Typography>
+              </div>
+            )}
+          </Grid>
+        ) : null}
       </MessageProvider>
     </Grid>
   );
