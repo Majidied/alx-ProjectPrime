@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { getUserByUsername } from '../services/userService';
+import { getUserById } from '../services/userService';
 import { getUserSocketId } from '../services/socketService';
 import {
     createMessage,
@@ -7,6 +7,8 @@ import {
     markMessagesAsSeen,
     deleteMessagesBetweenUsers,
     deleteMessageById,
+    getLastMessageBetweenUsers,
+    getUnseenMessagesCount,
 } from '../services/messageService';
 
 import { Server } from 'socket.io';
@@ -43,17 +45,16 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
         );
 
         // Find the recipient's socketId
-        const recipientUser = await getUserByUsername(recipientId);
+        const recipientUser = await getUserById(recipientId);
+        console.log(recipientUser);
         const recipientSocketId = recipientUser
             ? await getUserSocketId(recipientUser.id)
             : null;
+            console.log(recipientSocketId);
         if (recipientUser && recipientSocketId && req.io) {
             // Emit the message to the recipient using Socket.IO
             req.io.to(recipientSocketId).emit('newMessage', {
-                senderId,
-                message,
-                seen: false,
-                timestamp: newMessage.timestamp,
+                newMessage,
             });
         }
 
@@ -74,6 +75,7 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
 export const getMessages = async (req: Request, res: Response) => {
     const { contactId } = req.params;
 
+    console.log(contactId);
     if (!contactId) {
         return res.status(400).json({ error: 'Missing contactId' });
     }
@@ -154,3 +156,48 @@ export const deleteMessage = async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Failed to delete message' });
     }
 };
+
+/**
+ * Get the last message between two users.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response with the last message between the two users.
+ */
+export const getLastMessage = async (req: Request, res: Response) => {
+    const { contactId } = req.params;
+
+    if (!contactId) {
+        return res.status(400).json({ error: 'Missing contactId' });
+    }
+
+    try {
+        // Get the last message between the two users
+        const lastMessage = await getLastMessageBetweenUsers(contactId);
+
+        return res.status(200).json(lastMessage);
+    } catch (error) {
+        console.error('Error getting last message:', error);
+        return res.status(500).json({ error: 'Failed to get last message' });
+    }
+};
+
+/**
+ * Get the number of unseen messages.
+ *
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response with the number of unseen messages.
+ */
+export const getUnseenMessages = async (req: Request, res: Response) => {
+    const { contactId, senderId } = req.body;
+    try {
+        // Get the number of unseen messages
+        const count = await getUnseenMessagesCount(senderId, contactId);
+
+        return res.status(200).json({ count });
+    } catch (error) {
+        console.error('Error getting unseen messages:', error);
+        return res.status(500).json({ error: 'Failed to get unseen messages' });
+    }
+}

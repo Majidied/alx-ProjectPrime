@@ -13,6 +13,7 @@ import {
     setContactRequest,
     getContactRequests,
     checkContactRequest,
+    removeContactRequest,
 } from '../utils/contactReqeust';
 
 import { Server } from 'socket.io';
@@ -49,6 +50,11 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        const isContact = await contactExists(userId, recipientId);
+        if (isContact) {
+            return res.status(400).json({ error: 'User is already a contact' });
+        }
+
         const contactRequestExists = await checkContactRequest(
             userId,
             recipientId,
@@ -76,6 +82,41 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
             .json({ error: 'Failed to send contact request' });
     }
 };
+
+/**
+ * Decline a contact request.
+ * 
+ * @param req - The request object.
+ * @param res - The response object.
+ * @returns A JSON response with the result of the contact request.
+ */
+export const declineContactRequest = async (
+    req: CustomRequest,
+    res: Response,
+) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    const userId = await getUserIdByToken(token as string);
+
+    if (!userId) {
+        return res.status(400).json({ error: 'Invalid user ID' });
+    }
+
+    const { senderId } = req.params;
+
+    if (!senderId) {
+        return res.status(400).json({ error: 'Missing senderId' });
+    }
+
+    try {
+        await removeContactRequest(senderId, userId);
+        return res.status(200).json({ message: 'Contact request declined' });
+    } catch (error) {
+        console.error('Error declining contact request:', error);
+        return res
+            .status(500)
+            .json({ error: 'Failed to decline contact request' });
+    }
+}
 
 /**
  * Retrieves contact requests for a user.
@@ -132,6 +173,7 @@ export const createContact = async (req: Request, res: Response) => {
             return res.status(400).json({ error: 'Contact already exists' });
         }
 
+        await removeContactRequest(contactId, userId);
         const contact = await addContact(userId, contactId);
         return res.status(201).json(contact);
     } catch (error) {

@@ -7,6 +7,7 @@ import {
     getContactById,
     getContactsForUser,
     deleteContact,
+    declineContactRequest,
 } from '../controllers/contactController';
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.route('/create').post(protect, createContact);
 router.route('/get').get(protect, getContactsForUser);
 router.route('/get/:id').get(protect, getContactById);
 router.route('/delete/:contactId').delete(protect, deleteContact);
+router.route('/decline/:senderId').delete(protect, declineContactRequest);
 
 export default router;

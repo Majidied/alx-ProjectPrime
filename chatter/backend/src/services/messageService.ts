@@ -60,3 +60,38 @@ export const deleteMessagesBetweenUsers = async (senderId: string, recipientId: 
 export const deleteMessageById = async (messageId: string): Promise<void> => {
   await Message.findByIdAndDelete(messageId);
 }
+
+/**
+ * Retrieves the last message between two users without sorting.
+ * 
+ * @param contactId - The ID of the contact.
+ * @returns A promise that resolves to the last message.
+ */
+export const getLastMessageBetweenUsers = async (contactId: string): Promise<IMessage | null> => {
+  try {
+    const messages = await Message.find({ contactId }).exec();
+
+    if (messages.length === 0) {
+      return null;
+    }
+
+    // Retrieve the last message based on the natural order of the returned array
+    return messages[messages.length - 1];
+  } catch (error) {
+    console.error("Failed to retrieve the last message:", error);
+    return null;
+  }
+};
+
+/**
+ * Retrieves number of unseen messages between two users.
+ * 
+ * @param senderId - The ID of the sender.
+ * @param ContactId - The ID of the contact.
+ * @returns A promise that resolves to the number of unseen messages.
+ */
+export const getUnseenMessagesCount = async (senderId: string, contactId: string): Promise<number> => {
+  const count = await Message.countDocuments({ senderId, contactId, seen: false });
+  console.log('Unseen messages count:', count);
+  return count;
+}
