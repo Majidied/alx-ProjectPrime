@@ -1,31 +1,20 @@
-import React, { useEffect, useState } from 'react';
-import {
-  List,
-  ListItem,
-  ListItemText,
-  Paper,
-  Button,
-  Avatar,
-} from '@mui/material';
-import { getUserById, User } from '../../utils/User';
-import { createContact } from '../../utils/Contact';
-import { getContactRequests } from '../../utils/Contact'; // Import the function
+import React, { useState } from 'react';
+import { List, ListItem, ListItemText, Paper, Button, Avatar, Box } from '@mui/material';
+import { CheckCircle, Cancel } from '@mui/icons-material';
+import { createContact, declineContactRequest } from '../../utils/Contact';
 import Notification from '../Notification/Notification';
 import { AxiosError } from 'axios';
+import { useContactRequests } from '../../hooks/useContactRequests';
 
 interface NotificationDropdownProps {
-  onClose: () => void; // Function to close the dropdown
+  onClose: () => void;
+  onDecline: () => void;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
-  onClose,
-}) => {
-  const [notifications, setNotifications] = useState<string[]>([]);
-  const [searchResults, setSearchResults] = useState<{
-    [key: string]: User | null;
-  }>({});
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, onDecline }) => {
+  const { notifications, searchResults, setNotifications, setSearchResults } = useContactRequests();
   const [notification, setNotification] = useState({
-    type: 'error',
+    type: 'error' as 'error' | 'success',
     message: '',
     visible: false,
   });
@@ -33,107 +22,122 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   const handleAcceptRequest = async (userId: string) => {
     try {
       await createContact(userId);
-      searchResults[userId] = null;
-      setSearchResults({ ...searchResults }); // Update state to trigger re-render
-      setNotifications(
-        notifications.filter((notification) => notification !== userId)
-      ); // Remove the notification from the list
-      setNotification({
-        type: 'success',
-        message: 'Contact request accepted successfully.',
-        visible: true,
-      });
+      setSearchResults((prev) => ({ ...prev, [userId]: null }));
+      setNotifications((prev) => prev.filter((id) => id !== userId));
+      showNotification('success', 'Contact request accepted successfully.');
     } catch (error) {
-      console.error('Failed to create contact:', error);
-      setNotification({
-        type: 'error',
-        message:
-          ((error as AxiosError).response?.data as { error: string })?.error ||
-          'An error occurred. Please try again.',
-        visible: true,
-      });
+      handleError('Failed to create contact', error);
     }
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch contact requests
-        const requests = await getContactRequests();
-        setNotifications(requests); // Set notifications
+  const handleDeclineRequest = async (userId: string) => {
+    try {
+      await declineContactRequest(userId);
+      setNotifications((prev) => prev.filter((id) => id !== userId));
+      onDecline(); // Decrease the notification count
+      showNotification('success', 'Contact request declined successfully.');
+    } catch (error) {
+      handleError('Failed to decline contact request', error);
+    }
+  };
 
-        const results: { [key: string]: User | null } = {};
+  const showNotification = (type: 'error' | 'success', message: string) => {
+    setNotification({ type, message, visible: true });
+  };
 
-        for (const notification of requests) {
-          try {
-            const user = await getUserById(notification);
-            results[notification] = user ? (user as User) : null;
-          } catch (error) {
-            console.error('Failed to fetch user:', error);
-            results[notification] = null;
-          }
-        }
-
-        setSearchResults(results);
-      } catch (error) {
-        console.error('Failed to fetch contact requests:', error);
-      }
-    };
-
-    fetchData();
-  }, []); // Empty dependency array to fetch data on mount
+  const handleError = (defaultMessage: string, error: unknown) => {
+    console.error(defaultMessage, error);
+    const message =
+      ((error as AxiosError).response?.data as { error: string })?.error ||
+      'An error occurred. Please try again.';
+    showNotification('error', message);
+  };
 
   return (
     <Paper
-      style={{
+      sx={{
         position: 'absolute',
         bottom: 50,
         right: 0,
-        width: 300,
-        maxHeight: 300,
+        width: 320,
+        maxHeight: 400,
         overflowY: 'auto',
+        padding: 2,
+        boxShadow: 3,
+        borderRadius: 2,
       }}
     >
-      <List>
-        {notifications.map((notification, index) => {
-          const searchResult = searchResults[notification];
+      <List sx={{ padding: 0 }}>
+        {notifications.map((userId, index) => {
+          const user = searchResults[userId];
           return (
-            <ListItem key={index}>
-              {searchResult ? (
-                <>
+            <ListItem
+              key={index}
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: 1,
+                borderBottom: '1px solid #e0e0e0',
+              }}
+            >
+              {user ? (
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Avatar
-                    src={`https://i.pravatar.cc/150?u=${searchResult._id}`}
-                    alt={searchResult.name}
-                    sx={{ marginRight: '16px' }}
+                    src={`https://i.pravatar.cc/150?u=${user._id}`}
+                    alt={user.name}
+                    sx={{ marginRight: 2, width: 40, height: 40 }}
                   />
                   <ListItemText
-                    primary={searchResult.name}
-                    secondary={'@' + searchResult.username}
-                    primaryTypographyProps={{ fontWeight: 'bold' }}
-                    secondaryTypographyProps={{ color: 'text.secondary' }}
+                    primary={user.name}
+                    secondary={`@${user.username}`}
+                    primaryTypographyProps={{ fontWeight: 'bold', fontSize: '0.9rem' }}
+                    secondaryTypographyProps={{ color: 'text.secondary', fontSize: '0.8rem' }}
                   />
-                  <Button
-                    color="primary"
-                    onClick={() => handleAcceptRequest(notification)}
-                  >
-                    Accept
-                  </Button>
-                </>
+                </Box>
               ) : (
                 <ListItemText primary="User not found" />
+              )}
+              {user && (
+                <Box>
+                  <Button
+                    color="primary"
+                    sx={{ minWidth: 0, padding: 0.5 }}
+                    onClick={() => handleAcceptRequest(userId)}
+                  >
+                    <CheckCircle />
+                  </Button>
+                  <Button
+                    color="secondary"
+                    sx={{ minWidth: 0, padding: 0.5, marginLeft: 1 }}
+                    onClick={() => handleDeclineRequest(userId)}
+                  >
+                    <Cancel />
+                  </Button>
+                </Box>
               )}
             </ListItem>
           );
         })}
       </List>
-      <Button onClick={onClose} fullWidth>
+      <Button
+        onClick={onClose}
+        fullWidth
+        sx={{
+          marginTop: 2,
+          '&:hover': {
+            backgroundColor: '#1976d2',
+            color: '#fff',
+          },
+        }}
+      >
         Close
       </Button>
       {notification.visible && (
         <Notification
-          type={notification.type as 'error' | 'success'}
+          type={notification.type}
           message={notification.message}
-          onClose={() => setNotification({ ...notification, visible: false })}
+          onClose={() => setNotification((prev) => ({ ...prev, visible: false }))}
         />
       )}
     </Paper>

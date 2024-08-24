@@ -147,3 +147,24 @@ export const getUserStatus = async (id: string): Promise<boolean> => {
     return false;
   }
 };
+
+export const uploadAvatar = async (file: File): Promise<object> => {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    throw new Error('No authentication token found');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await axios.post('/api/files/upload-profile', formData, {
+    headers,
+  });
+
+  return response.data;
+};

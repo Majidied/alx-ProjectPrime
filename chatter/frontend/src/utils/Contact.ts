@@ -8,7 +8,7 @@ export interface Contact {
   name: string;
   message: string;
   time: string;
-  id: string;
+  _id: string;
   userId: string;
   contactId: string;
 }
@@ -72,6 +72,18 @@ export const getContactRequests = async () => {
 
   const response = await axios.get('/api/contacts/get-requests', { headers });
   console.log(response.data);
+
+  return response.data;
+}
+
+export const declineContactRequest = async (senderId: string) => {
+  const token = localStorage.getItem('token');
+
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
+  const response = await axios.delete(`/api/contacts/decline/${senderId}`, { headers });
 
   return response.data;
 }

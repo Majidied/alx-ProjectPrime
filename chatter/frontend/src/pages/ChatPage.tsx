@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
+import { Grid, useTheme, useMediaQuery, Typography } from '@mui/material';
 import { getContacts } from '../utils/Contact';
 import { Contact } from '../utils/Contact';
+import { MessageProvider } from '../contexts/MessageContext';
 import ChatsSideBar from '../components/ChatsSideBar/ChatsSideBar';
+import ChatWindow from '../components/ChatWindow/ChatWindow';
 
 function ChatPage() {
   const [contacts, setContacts] = useState([] as Contact[]);
+  const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     const fetchContacts = async () => {
@@ -16,14 +22,56 @@ function ChatPage() {
       }
     };
 
-
     fetchContacts();
   }, []);
 
   return (
-    <div className="flex flex-col h-screen">
-      <ChatsSideBar contacts={contacts} />
-    </div>
+    <Grid container direction={isMobile ? 'column' : 'row'} className="h-screen">
+      <MessageProvider>
+      <Grid
+        item
+        xs={12}
+        md={4}
+        style={{
+          display: isMobile ? 'none' : 'block',
+          width: isMobile ? '100%' : '350px',
+          maxWidth: isMobile ? '100%' : '350px',
+          overflowY: 'auto',
+          borderRight: '1px solid rgba(0, 0, 0, 0.12)',
+          backgroundColor: '#f5f5f5',
+        }}
+      >
+        <ChatsSideBar contacts={contacts} onSelectContact={setSelectedContact} />
+      </Grid>
+      <Grid
+        item
+        xs={12}
+        md={8}
+        style={{
+          width: isMobile ? '100%' : 'calc(100% - 350px)',
+          maxWidth: isMobile ? '100%' : 'calc(100% - 350px)',
+          flexGrow: 1,
+        }}
+      >
+        {selectedContact ? (
+          <ChatWindow contact={selectedContact} />
+        ) : (
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+            }}
+          >
+            <Typography variant="h6" color="textSecondary" align="center">
+              Please select a contact to start chatting.
+            </Typography>
+          </div>
+        )}
+      </Grid>
+      </MessageProvider>
+    </Grid>
   );
 }
 

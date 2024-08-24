@@ -1,75 +1,63 @@
+import React from 'react';
 import { Avatar, Badge, Box, Typography } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
-import { useEffect, useState } from 'react';
-import { Contact } from '../../utils/Contact';
-import { getUserContact, getContactAvatar, getUserStatus } from '../../utils/User';
-import socket from '../../utils/socket';
+import { useContact } from '../../hooks/useContact';
+import { useAvatar } from '../../hooks/useAvatar';
+import { useUserStatus } from '../../hooks/useUserStatus';
+import { useMessageContext } from '../../contexts/MessageContext';
+import { useLastMessage } from '../../hooks/useLastMessage';
+import { useUnseenMessages } from '../../hooks/useUnseenMessages';
 
 interface ContactItemProps {
+  id: string;
   contactId: string;
+  onClick: () => void;
 }
 
-export default function ContactItem({ contactId }: ContactItemProps) {
-  const [contact, setContact] = useState<Contact | null>(null);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [isOnline, setIsOnline] = useState(false);
+export default function ContactItem({
+  id,
+  contactId,
+  onClick,
+}: ContactItemProps) {
+  const contact = useContact(contactId);
+  const { unseenMessages } = useUnseenMessages(contactId, id);
+  const avatarUrl = useAvatar(contactId);
+  const isOnline = useUserStatus(contactId);
+  const lastMessageLocal = useLastMessage(id);
+  const { lastMessages } = useMessageContext();
+  const lastMessage = lastMessages[id];
 
-  useEffect(() => {
-    const fetchContact = async () => {
-      try {
-        const fetchedContact = await getUserContact(contactId);
-        setContact(fetchedContact as Contact);
-      } catch (error) {
-        console.error('Failed to fetch contact:', error);
-      }
-    };
+  // Timestamps
+  const lastMessageTimestamp = lastMessage?.timestamp
+    ? new Date(lastMessage.timestamp).getTime()
+    : 0;
+  const lastMessageLocalTimestamp = lastMessageLocal?.timestamp
+    ? new Date(lastMessageLocal.timestamp).getTime()
+    : 0;
 
-    const fetchAvatar = async () => {
-      try {
-        const avatarFile = await getContactAvatar(contactId);
-        const avatarBlob = avatarFile as unknown as Blob;
-        const avatarObjectUrl = URL.createObjectURL(avatarBlob);
-        setAvatarUrl(avatarObjectUrl);
-      } catch (error) {
-        console.error('Failed to fetch avatar:', error);
-      }
-    };
+  // Formatted Time
+  const lastMessageTime =
+    lastMessage?.timestamp?.split('T')[1].split('.')[0].slice(0, -3) || '';
 
-    const checkUserStatus = async () => {
-      const onlineStatus = await getUserStatus(contactId);
-      setIsOnline(onlineStatus);
-    }
+  const lastMessageLocalTime =
+    lastMessageLocal?.timestamp?.split('T')[1].split('.')[0].slice(0, -3) || '';
 
-    fetchContact();
-    fetchAvatar();
-    checkUserStatus();
+  // Determine the most recent message and its time
+  const finalMessage =
+    lastMessageTimestamp < lastMessageLocalTimestamp
+      ? (lastMessageLocal?.recipientId === contactId
+          ? 'You:' + lastMessageLocal?.message
+          : lastMessageLocal?.message) || 'No recent messages'
+      : 'You:' + lastMessage?.message || 'No recent messages';
 
-    // Listen for online and offline events
-    socket.on('userOnline', ({ userId }) => {
-      if (userId === contactId) {
-        setIsOnline(true);
-        console.log(`User ${userId} is online`);
-      }
-    });
-
-    socket.on('userOffline', ({ userId }) => {
-      if (userId === contactId) {
-        setIsOnline(false);
-        console.log(`User ${userId} is offline`);
-      }
-    });
-
-    return () => {
-      if (avatarUrl) {
-        URL.revokeObjectURL(avatarUrl); // Clean up the object URL
-      }
-      socket.off('userOnline'); // Remove the event listener to prevent memory leaks
-      socket.off('userOffline'); // Remove the event listener to prevent memory leaks
-    };
-  }, [contactId, avatarUrl]);
+  const finalMessageTime =
+    lastMessageTimestamp < lastMessageLocalTimestamp
+      ? lastMessageLocalTime || '10:00 AM'
+      : lastMessageTime || '10:00 AM';
 
   return (
     <Box
+      onClick={onClick}
       className="flex items-center justify-between p-1 ml-4 mr-4 bg-white rounded-lg shadow-md hover:bg-gray-100 hover:shadow-lg transition duration-200 ease-in-out transform hover:scale-105 cursor-pointer"
     >
       <Box className="flex items-center">
@@ -97,30 +85,33 @@ export default function ContactItem({ contactId }: ContactItemProps) {
               {contact?.name || 'Unknown Name'}
             </Typography>
           </div>
-          <Typography variant="body2" className="text-gray-600 text-sm truncate w-40">
-            {contact?.message || 'No recent messages'}
+          <Typography
+            variant="body2"
+            className="text-gray-600 text-sm truncate w-40"
+          >
+            {finalMessage}
           </Typography>
         </Box>
       </Box>
       <Box className="flex flex-col items-end ml-4">
         <Typography variant="body2" className="text-gray-500 text-xs mb-1">
-          {contact?.time || '10:00 AM'}
+          {finalMessageTime}
         </Typography>
         <Badge
-          badgeContent={5} // Example badge content
+          badgeContent={unseenMessages || 0}
           color="primary"
           className="mt-1"
           sx={{
             '& .MuiBadge-badge': {
               backgroundColor: 'rgb(33, 150, 243)',
               color: 'white',
-              minWidth: 20, // Ensure the badge is large enough for the content
+              minWidth: 20,
               height: 20,
               borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '0.75rem', // Adjust font size as needed
+              fontSize: '0.75rem',
             },
           }}
         />

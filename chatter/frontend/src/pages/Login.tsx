@@ -5,6 +5,7 @@ import { login } from '../utils/User';
 import { Input } from '@mui/material';
 import { Button } from '@mui/material';
 import Notification from '../components/Notification/Notification';
+import { AxiosError } from 'axios';
 
 const Login = () => {
   const { setToken } = useAuth();
@@ -32,14 +33,12 @@ const Login = () => {
         );
       }
     } catch (error) {
-      setError(
-        'Sorry, something went wrong. Please check your connection and try again.'
-      );
-      console.error('Login error:', error);
-      setNotification({
-        type: 'error',
-        message: 'An error occurred. Please try again.',
-        visible: true,
+      const errorMessage = (error as AxiosError<{error: string}>)?.response?.data?.error;
+        setError(errorMessage || 'An error occurred. Please try again.');
+        setNotification({
+          type: 'error',
+          message: errorMessage || 'An error occurred. Please try again.',
+          visible: true,
       });
     }
   };

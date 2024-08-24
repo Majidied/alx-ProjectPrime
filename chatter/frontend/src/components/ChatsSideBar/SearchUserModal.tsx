@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -14,29 +14,27 @@ import {
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
-import { searchUser, User } from '../../utils/User';
 import { sendContactRequest } from '../../utils/Contact';
 import Notification from '../Notification/Notification';
 import { AxiosError } from 'axios';
+import { useUserSearch } from '../../hooks/useUserSearch';
 
-function SearchUserModal({
-  open,
-  onClose,
-}: {
+interface SearchUserModalProps {
   open: boolean;
   onClose: () => void;
-}) {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [searchResult, setSearchResult] = useState<User | null>(null);
+}
+
+const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
+  const { searchTerm, setSearchTerm, searchResult, handleSearch } = useUserSearch();
   const [notification, setNotification] = useState({
     type: 'error',
     message: '',
     visible: false,
   });
 
-  const handleSendRequest = async (user_Id: string) => {
+  const handleSendRequest = async (userId: string) => {
     try {
-      await sendContactRequest(user_Id);
+      await sendContactRequest(userId);
       setNotification({
         type: 'success',
         message: 'Friend request sent successfully.',
@@ -52,23 +50,6 @@ function SearchUserModal({
       });
     }
   };
-
-  const handleSearch = async () => {
-    try {
-      const user = await searchUser(searchTerm);
-      console.log('User:', (user as User)._id);
-      setSearchResult(user ? (user as User) : null);
-    } catch (error) {
-      console.error('Failed to fetch user:', error);
-      setSearchResult(null);
-    }
-  };
-
-  useEffect(() => {
-    if (searchTerm) {
-      handleSearch();
-    }
-  }, [searchTerm]);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -106,7 +87,7 @@ function SearchUserModal({
               />
               <ListItemText
                 primary={searchResult.name}
-                secondary={'@' + searchResult.username}
+                secondary={`@${searchResult.username}`}
                 primaryTypographyProps={{ fontWeight: 'bold' }}
                 secondaryTypographyProps={{ color: 'text.secondary' }}
               />
@@ -128,6 +109,6 @@ function SearchUserModal({
       )}
     </Dialog>
   );
-}
+};
 
 export default SearchUserModal;
