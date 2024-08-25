@@ -1,6 +1,6 @@
-import { isVerifiedUser } from "../utils/User";
-import { useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { isVerifiedUser } from "../utils/User";
 
 /**
  * Custom hook to verify if a user is verified.
@@ -8,23 +8,40 @@ import { useNavigate } from "react-router-dom";
  * @returns A boolean value indicating if the user is verified.
  */
 const useVerification = () => {
+  const [isVerified, setIsVerified] = useState<boolean>(false);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const checkVerification = async () => {
-      try {
-        const response = await isVerifiedUser();
+  const checkVerification = useCallback(async () => {
+    try {
+      const response = await isVerifiedUser();
 
-        if (!response) {
-          navigate('/verify');
-        }
-      } catch (error) {
-        console.error('Error checking verification:', error);
+      if (!response) {
+        navigate('/verify');
+      } else {
+        setIsVerified(true);
+      }
+    } catch (error) {
+      console.error('Error checking verification:', error);
+    }
+  }, [navigate]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const runCheck = async () => {
+      if (isMounted) {
+        await checkVerification();
       }
     };
 
-    checkVerification();
-  }, [navigate]);
-}
+    runCheck();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [checkVerification]);
+
+  return isVerified;
+};
 
 export default useVerification;

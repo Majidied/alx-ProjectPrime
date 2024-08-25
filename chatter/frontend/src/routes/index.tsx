@@ -6,6 +6,7 @@ import Logout from '../pages/Logout';
 import Register from '../pages/Register';
 import ChatPage from '../pages/ChatPage';
 import WaitingForValidation from '../pages/WaitingForValidation';
+import NotFoundPage from '../pages/NotFoundPage';
 
 const Routes = () => {
   const { token } = useAuth();
@@ -43,7 +44,7 @@ const Routes = () => {
         {
           path: '/verify',
           element: <WaitingForValidation />,
-        }
+        },
       ],
     },
   ];
@@ -61,7 +62,15 @@ const Routes = () => {
     {
       path: '/register',
       element: <Register />,
-    }
+    },
+  ];
+
+  // Define the 404 Not Found route
+  const notFoundRoute = [
+    {
+      path: '*',
+      element: <NotFoundPage />,
+    },
   ];
 
   // Combine and conditionally include routes based on authentication status
@@ -69,6 +78,7 @@ const Routes = () => {
     ...routesForPublic,
     ...(!token ? routesForNotAuthenticatedOnly : []),
     ...routesForAuthenticatedOnly,
+    ...notFoundRoute, // Include the 404 route last
   ]);
 
   // Provide the router configuration using RouterProvider

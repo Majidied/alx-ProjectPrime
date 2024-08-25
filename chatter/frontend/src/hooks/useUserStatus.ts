@@ -6,31 +6,37 @@ export const useUserStatus = (contactId: string) => {
   const [isOnline, setIsOnline] = useState(false);
 
   useEffect(() => {
+    let isMounted = true; // To check if the component is still mounted
+    const abortController = new AbortController(); // Create an AbortController instance
+
     const checkUserStatus = async () => {
-      const onlineStatus = await getUserStatus(contactId);
-      setIsOnline(onlineStatus);
+      try {
+        const onlineStatus = await getUserStatus(contactId);
+        if (isMounted) setIsOnline(onlineStatus);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          console.error('Error fetching user status:', error);
+        }
+      }
     };
 
     checkUserStatus();
 
-    // Listen for online and offline events
-    socket.on('userOnline', ({ userId }) => {
-      if (userId === contactId) {
-        setIsOnline(true);
-        console.log(`User ${userId} is online`);
+    const handleUserStatusChange = ({ userId, status }: { userId: string; status: boolean }) => {
+      if (isMounted && userId === contactId) {
+        setIsOnline(status);
+        console.log(`User ${userId} is ${status ? 'online' : 'offline'}`);
       }
-    });
+    };
 
-    socket.on('userOffline', ({ userId }) => {
-      if (userId === contactId) {
-        setIsOnline(false);
-        console.log(`User ${userId} is offline`);
-      }
-    });
+    socket.on('userOnline', (data) => handleUserStatusChange({ ...data, status: true }));
+    socket.on('userOffline', (data) => handleUserStatusChange({ ...data, status: false }));
 
     return () => {
-      socket.off('userOnline');
-      socket.off('userOffline');
+      isMounted = false; // Set isMounted to false when the component unmounts
+      abortController.abort(); // Cancel any ongoing async operation
+      socket.off('userOnline', handleUserStatusChange); // Clean up event listeners
+      socket.off('userOffline', handleUserStatusChange);
     };
   }, [contactId]);
 

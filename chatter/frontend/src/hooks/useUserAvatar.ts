@@ -7,10 +7,14 @@ export const useUserAvatar = () => {
   useEffect(() => {
     const fetchUserAvatar = async () => {
       try {
-        const avatarFile = await getUserAvatar();
-        const avatarBlob = avatarFile as unknown as Blob;
+        const avatarBlob = await getUserAvatar();
         const url = URL.createObjectURL(avatarBlob);
-        setAvatarUrl(url);
+        setAvatarUrl((prevUrl) => {
+          if (prevUrl) {
+            URL.revokeObjectURL(prevUrl);
+          }
+          return url;
+        });
       } catch (error) {
         console.error('Failed to fetch user avatar:', error);
       }

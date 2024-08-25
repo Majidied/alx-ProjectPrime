@@ -46,7 +46,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   };
 
   return (
-    <div className="flex items-center mt-4 relative">
+    <div className="flex items-center relative">
       {/* Attachment Dropdown Menu */}
       <IconButton color="primary" onClick={handleMenuOpen} aria-label="Attach files">
         <AttachFile />

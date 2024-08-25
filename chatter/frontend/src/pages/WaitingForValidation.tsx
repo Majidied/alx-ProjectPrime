@@ -78,7 +78,7 @@ const WaitingForValidation = () => {
     });
 
     checkVerification();
-  }, [navigate]);
+  }, [navigate, user?._id]);
 
   return (
     <div
