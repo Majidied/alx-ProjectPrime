@@ -110,7 +110,7 @@ const Login = () => {
           </p>
         </div>
         <div
-          className="bg-cover bg-center p-8 rounded-lg shadow-lg w-full md:w-1/2 h-full flex flex-col justify-center items-center text-center hidden md:flex"
+          className="bg-cover bg-center p-8 rounded-lg shadow-lg w-full md:w-1/2 h-full flex-col justify-center items-center text-center hidden md:flex"
           style={{ backgroundImage: `url('src/assets/login.jpg')` }}
         >
           <h1 className="text-4xl font-bold text-black mb-4 bg-gradient-to-r from-cyan-600 to-violet-900 bg-clip-text text-transparent">

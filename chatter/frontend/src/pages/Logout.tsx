@@ -15,6 +15,7 @@ const Logout = () => {
     } else {
       handleLogout();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countdown]);
 
   const handleLogout = () => {

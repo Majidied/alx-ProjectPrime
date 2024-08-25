@@ -1,11 +1,11 @@
-import React, { useRef, useImperativeHandle, forwardRef, useEffect, useCallback, memo } from 'react';
+import { useRef, useImperativeHandle, forwardRef, useEffect, useCallback, memo } from 'react';
 import { VariableSizeList as List, ListChildComponentProps } from 'react-window';
 import { Avatar } from '@mui/material';
 import { useMessages } from '../../hooks/useMessages';
 import { Message } from '../../utils/Message';
 import { useAvatar } from '../../hooks/useAvatar';
 import { motion } from 'framer-motion';
-import _ from 'lodash'; // lodash for debounce
+import _ from 'lodash';
 
 interface MessageListProps {
   contactId: string;
@@ -19,7 +19,6 @@ const MessageList = forwardRef<{ addMessage: (message: Message) => void }, Messa
     const listRef = useRef<List>(null); 
     const prevMessagesLength = useRef(messages.length);
 
-    // Call useAvatar directly at the top level of the component
     const avatar = useAvatar(recipientId);
     const userAvatar = useAvatar(ownerId);
 
@@ -44,20 +43,18 @@ const MessageList = forwardRef<{ addMessage: (message: Message) => void }, Messa
         scrollToBottom();
         prevMessagesLength.current = messages.length;
       }
-    }, [messages.length]); // Only trigger on message length change
+    }, [messages.length, scrollToBottom]);
 
     const getItemSize = useCallback(
       (index: number) => {
         const message = messages[index];
-        // Calculate or determine the height of the message dynamically
         const baseHeight = 80;
         const extraHeight = Math.min(100, message.message.length / 2);
         return baseHeight + extraHeight;
       },
-      [messages] // Memoize and ensure it doesn't cause unnecessary re-renders
+      [messages]
     );
 
-    // Memoize the Row component to prevent unnecessary re-renders
     const Row = useCallback(
       memo(({ index, style }: ListChildComponentProps) => {
         const message = messages[index];
