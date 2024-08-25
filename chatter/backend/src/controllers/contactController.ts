@@ -50,6 +50,10 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        if (userId === recipientId) {
+            return res.status(400).json({ error: 'Cannot send request to self' });
+        }
+
         const isContact = await contactExists(userId, recipientId);
         if (isContact) {
             return res.status(400).json({ error: 'User is already a contact' });

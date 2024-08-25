@@ -1,11 +1,12 @@
 import multer from 'multer';
 import mime from 'mime-types';
 import fs from 'fs';
-import { Request } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { getUploadPath } from '../utils/getUploadPath';
 import directories from '../config/directories';
 import { getIdentifier } from '../utils/getIdentifier';
-import { createFile, deleteFileById } from '../services/fileService';
+import { createFile, deleteFileByIdentifier, getFileByIdentifier } from '../services/fileService';
+import { removeLocalFile } from '../utils/filesManager';
 
 /**
  * Multer disk storage configuration.
@@ -47,25 +48,37 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: async (req: Request, file: Express.Multer.File, cb) => {
-        const fileType = mime.extension(file.mimetype);
-        const identifier = await getIdentifier(req);
+        try {
+            const fileType = mime.extension(file.mimetype);
+            const identifier = await getIdentifier(req);
 
-        if (!identifier) {
-            return cb(
-                new Error(
-                    'User ID or Message ID is required for filename generation',
-                ),
-                '',
+            if (!identifier) {
+                return cb(
+                    new Error(
+                        'User ID or Message ID is required for filename generation',
+                    ),
+                    '',
+                );
+            }
+
+            const existingFile = await getFileByIdentifier(identifier as string);
+            if (existingFile) {
+                await removeLocalFile(
+                    `${existingFile.filePath}${existingFile.identifier}.${existingFile.fileType}`,
+                );
+            }
+
+            await deleteFileByIdentifier(identifier as string);
+            await createFile(
+                identifier as string,
+                fileType as string,
+                getUploadPath(req.path, fileType as string),
             );
-        }
-        await deleteFileById(identifier as string);
-        await createFile(
-            identifier as string,
-            fileType as string,
-            getUploadPath(req.path, fileType as string),
-        );
 
-        cb(null, `${identifier}.${fileType}`);
+            cb(null, `${identifier}.${fileType}`);
+        } catch (error) {
+            cb(error as Error, '');
+        }
     },
 });
 
@@ -106,3 +119,29 @@ export const upload = multer({
         }
     },
 });
+
+/**
+ * Error handling middleware for the upload process.
+ * 
+ * @param err - The error object.
+ * @param req - The Express request object.
+ * @param res - The Express response object.
+ * @param next - The next middleware function.
+ */
+export const handleUploadError = (
+    err: Error,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    if (err instanceof multer.MulterError) {
+        // A Multer error occurred when uploading.
+        res.status(400).json({ message: `Multer error: ${err.message}` });
+    } else if (err) {
+        // An unknown error occurred when uploading.
+        res.status(500).json({ message: `Unknown error: ${err.message}` });
+    } else {
+        // Everything went fine.
+        next();
+    }
+};

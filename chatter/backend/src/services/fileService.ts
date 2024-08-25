@@ -20,18 +20,20 @@ export const createFile = async (
 
 /**
  * Retrieves a file by its identifier.
- * 
+ *
  * @param identifier - The identifier of the file.
  * @returns A promise that resolves to the file.
  * @throws Error if the file is not found.
  */
-export const getFileByIdentifier = async (identifier: string): Promise<IFile> => {
+export const getFileByIdentifier = async (
+    identifier: string,
+): Promise<IFile> => {
     const file = await File.findOne({ identifier });
     if (!file) {
         return null as any;
     }
     return file;
-}
+};
 
 /**
  * Retrieves a file by its ID.
@@ -45,7 +47,7 @@ export const getFileById = async (fileId: string): Promise<IFile> => {
         throw new Error('File not found');
     }
     return file;
-}
+};
 
 /**
  * Deletes a file by its ID.
@@ -55,6 +57,18 @@ export const getFileById = async (fileId: string): Promise<IFile> => {
  */
 export const deleteFileById = async (fileId: string): Promise<void> => {
     await File.findByIdAndDelete(fileId);
+};
+
+/**
+ * Deletes a file by its identifier.
+ *
+ * @param identifier - The identifier of the file to be deleted.
+ * @returns A promise that resolves to void.
+ */
+export const deleteFileByIdentifier = async (
+    identifier: string,
+): Promise<void> => {
+    await File.deleteMany({ identifier });
 };
 
 /**
