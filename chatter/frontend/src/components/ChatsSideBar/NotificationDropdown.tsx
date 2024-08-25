@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { List, ListItem, ListItemText, Paper, Button, Avatar, Box } from '@mui/material';
 import { CheckCircle, Cancel } from '@mui/icons-material';
 import { createContact, declineContactRequest } from '../../utils/Contact';
 import Notification from '../Notification/Notification';
 import { AxiosError } from 'axios';
 import { useContactRequests } from '../../hooks/useContactRequests';
+import { getContactAvatar } from '../../utils/User';
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -18,6 +19,8 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, on
     message: '',
     visible: false,
   });
+  const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
+  const cachedAvatars = useRef<{ [key: string]: string }>({});
 
   const handleAcceptRequest = async (userId: string) => {
     try {
@@ -53,6 +56,30 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, on
     showNotification('error', message);
   };
 
+  useEffect(() => {
+    const fetchAvatars = async () => {
+      const avatarPromises = notifications.map(async (userId) => {
+        if (!cachedAvatars.current[userId]) {
+          const avatar = await getContactAvatar(userId);
+          const avatarBlob = avatar as unknown as Blob;
+          const avatarObjectUrl = URL.createObjectURL(avatarBlob);
+          cachedAvatars.current[userId] = avatarObjectUrl;
+        }
+        return { userId, avatarObjectUrl: cachedAvatars.current[userId] };
+      });
+  
+      const avatarResults = await Promise.all(avatarPromises);
+      const avatarMap = avatarResults.reduce((acc, { userId, avatarObjectUrl }) => {
+        acc[userId] = avatarObjectUrl;
+        return acc;
+      }, {} as { [key: string]: string });
+  
+      setAvatars(avatarMap);
+    };
+  
+    fetchAvatars();
+  }, [notifications]);
+
   return (
     <Paper
       sx={{
@@ -68,11 +95,11 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, on
       }}
     >
       <List sx={{ padding: 0 }}>
-        {notifications.map((userId, index) => {
+        {notifications.map((userId) => {
           const user = searchResults[userId];
           return (
             <ListItem
-              key={index}
+              key={userId}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -84,7 +111,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, on
               {user ? (
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Avatar
-                    src={`https://i.pravatar.cc/150?u=${user._id}`}
+                    src={avatars[userId] || undefined}
                     alt={user.name}
                     sx={{ marginRight: 2, width: 40, height: 40 }}
                   />

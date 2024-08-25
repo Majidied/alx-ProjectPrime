@@ -1,27 +1,29 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Message, getLastMessage } from "../utils/Message";
 import socket from "../utils/socket";
 
 export const useLastMessage = (contactId: string): Message | null => {
   const [lastMessage, setLastMessage] = useState<Message | null>(null);
 
+  const fetchLastMessage = useCallback(async () => {
+    try {
+      const fetchedLastMessage = await getLastMessage(contactId);
+      setLastMessage(fetchedLastMessage);
+    } catch (error) {
+      console.error("Failed to fetch last message:", error);
+    }
+  }, [contactId]);
+
   useEffect(() => {
-    const fetchLastMessage = async () => {
-      try {
-        const fetchedLastMessage = await getLastMessage(contactId);
-        setLastMessage(fetchedLastMessage);
-      } catch (error) {
-        console.error("Failed to fetch last message:", error);
+    let isMounted = true;
+
+    const handleNewMessage = ({ newMessage }: { newMessage: Message }) => {
+      if (newMessage.contactId === contactId && isMounted) {
+        setLastMessage(newMessage);
       }
     };
 
     fetchLastMessage();
-
-    const handleNewMessage = ({ newMessage }: { newMessage: Message }) => {
-      if (newMessage.contactId === contactId) {
-        setLastMessage(newMessage);
-      }
-    };
 
     if (socket) {
       socket.on("newMessage", handleNewMessage);
@@ -30,11 +32,12 @@ export const useLastMessage = (contactId: string): Message | null => {
     }
 
     return () => {
+      isMounted = false;
       if (socket) {
         socket.off("newMessage", handleNewMessage);
       }
     };
-  }, [contactId]);
+  }, [contactId, fetchLastMessage]);
 
   return lastMessage;
 };

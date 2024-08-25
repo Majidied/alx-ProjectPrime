@@ -18,6 +18,7 @@ import { sendContactRequest } from '../../utils/Contact';
 import Notification from '../Notification/Notification';
 import { AxiosError } from 'axios';
 import { useUserSearch } from '../../hooks/useUserSearch';
+import { useAvatar } from '../../hooks/useAvatar';
 
 interface SearchUserModalProps {
   open: boolean;
@@ -26,11 +27,13 @@ interface SearchUserModalProps {
 
 const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
   const { searchTerm, setSearchTerm, searchResult, handleSearch } = useUserSearch();
+  const searchAvatar = useAvatar(searchResult?._id || '');
   const [notification, setNotification] = useState({
     type: 'error',
     message: '',
     visible: false,
   });
+
 
   const handleSendRequest = async (userId: string) => {
     try {
@@ -44,8 +47,8 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
       console.error('Failed to send friend request:', error);
       setNotification({
         type: 'warning',
-        message: ((error as AxiosError).response?.data as { error: string })
-          ?.error || 'An error occurred. Please try again.',
+        message: ((error as AxiosError).response?.data as { error: string })?.error || 
+                  'An error occurred. Please try again.',
         visible: true,
       });
     }
@@ -81,7 +84,7 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
               }
             >
               <Avatar
-                src={`https://i.pravatar.cc/150?u=${searchResult._id}`}
+                src={searchAvatar || undefined}
                 alt={searchResult.name}
                 sx={{ marginRight: '16px' }}
               />
