@@ -71,7 +71,6 @@ export const sendContactRequest = async (req: CustomRequest, res: Response) => {
 
         await setContactRequest(userId, recipientId);
         const recipientSocketId = await getUserSocketId(recipientId);
-        console.log('Recipient socket ID:', recipientSocketId);
         if (recipientSocketId && req.io) {
             req.io
                 .to(recipientSocketId)

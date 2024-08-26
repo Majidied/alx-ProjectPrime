@@ -71,10 +71,8 @@ const getUserIdByToken = async (token: string) => {
 const removeAllTokens = async (userId: string, type: string): Promise<void> => {
     try {
         const keys = await redisClient.keys('*');
-        console.log(`Found ${keys.length} keys`);
 
         for (const key of keys) {
-            console.log(`Processing key: ${key}`);
             const keyType = await redisClient.type(key);
             if (keyType !== 'string') {
                 console.warn(`Skipping non-string key ${key} of type ${keyType}`);
@@ -87,7 +85,6 @@ const removeAllTokens = async (userId: string, type: string): Promise<void> => {
                 let shouldDelete = false;
                 try {
                     const { id, type: tokenType } = JSON.parse(cachedToken);
-                    console.log(`Parsed token for key ${key}:`, { id, tokenType });
 
                     if (id === userId && type === tokenType) {
                         shouldDelete = true;

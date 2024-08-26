@@ -55,7 +55,6 @@ const _handleDisconnect = async (socket: Socket) => {
     }
     socket.on('disconnect', async () => {
         await deleteUserSocketId(socket.id);
-        console.log(`User disconnected: ${socket.id}`);
         await updateUserStatus(userId, false);
         socket.broadcast.emit('userOffline', { userId });
     });

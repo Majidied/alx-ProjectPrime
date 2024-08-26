@@ -58,9 +58,6 @@ export const registerUser = async (req: Request, res: Response) => {
         const verificationUrl = `${req.protocol}://${req.get('host')}/api/users/verify/${verificationToken}`;
 
         await sendVerificationEmail(email, verificationUrl)
-            .then(() => {
-                console.log('Verification email sent');
-            })
             .catch((error) => {
                 User.deleteOne({ _id: user._id });
                 res.status(500).json({

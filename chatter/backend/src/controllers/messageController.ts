@@ -45,11 +45,9 @@ export const sendMessage = async (req: CustomRequest, res: Response) => {
 
         // Find the recipient's socketId
         const recipientUser = await getUserById(recipientId);
-        console.log(recipientUser);
         const recipientSocketId = recipientUser
             ? await getUserSocketId(recipientUser.id)
             : null;
-        console.log(recipientSocketId);
         if (recipientUser && recipientSocketId && req.io) {
             // Emit the message to the recipient using Socket.IO
             req.io.to(recipientSocketId).emit('newMessage', {
@@ -102,9 +100,7 @@ export const getMessages = async (req: Request, res: Response) => {
         }
 
         // Mark messages as seen
-        await markMessagesAsSeen(senderId, user).then(() => {
-            console.log('Messages marked as seen');
-        });
+        await markMessagesAsSeen(senderId, user);
 
         return res.status(200).json(messages);
     } catch (error) {

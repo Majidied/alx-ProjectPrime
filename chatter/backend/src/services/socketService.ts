@@ -14,7 +14,6 @@ const storeUserSocketId = async (
   try {
     // Store the socket ID in Redis hash under the key 'users'
     await redisClient.hSet("users", userId, socketId);
-    console.log(`Stored socket ID ${socketId} for user ${userId}`);
   } catch (error) {
     throw new Error("Error storing user socket ID in Redis: " + error);
   }

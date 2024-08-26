@@ -92,6 +92,5 @@ export const getLastMessageBetweenUsers = async (contactId: string): Promise<IMe
  */
 export const getUnseenMessagesCount = async (senderId: string, contactId: string): Promise<number> => {
   const count = await Message.countDocuments({ senderId, contactId, seen: false });
-  console.log('Unseen messages count:', count);
   return count;
 }
