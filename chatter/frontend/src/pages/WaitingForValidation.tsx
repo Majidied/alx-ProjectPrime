@@ -1,9 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button, Alert, CircularProgress, AlertColor } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { resendValidationEmail } from '../utils/User';
-import { useEffect } from 'react';
-import { isVerifiedUser } from '../utils/User';
+import { resendValidationEmail, isVerifiedUser } from '../utils/User';
 import socket from '../utils/socket';
 import { useUserProfile } from '../hooks/useUserProfile';
 
@@ -78,6 +76,10 @@ const WaitingForValidation = () => {
     });
 
     checkVerification();
+
+    return () => {
+      socket.off('user-verified');
+    };
   }, [navigate, user?._id]);
 
   return (

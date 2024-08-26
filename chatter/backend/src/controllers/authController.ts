@@ -15,7 +15,6 @@ interface CustomRequest extends Request {
     io?: Server;
 }
 
-
 /**
  * Registers a new user.
  *
@@ -177,36 +176,32 @@ export const ValidateUser = async (req: CustomRequest, res: Response) => {
         }
 
         const tokenCache = await verifyToken(token);
-        if (tokenCache) {
-            const userId = await getUserIdByToken(token);
-
-            if (!userId) {
-                return res.status(400).json({ message: 'Invalid user ID' });
-            }
-
-            const user = await User.findById(userId);
-
-            if (user) {
-                user.verified = true;
-                await user.save();
-
-                if (req.io) {
-                    req.io.emit('user-verified', { userId: user._id });
-                }
-
-                removeToken(token, () => {});
-
-                return res
-                    .status(200)
-                    .json({ message: 'User verified successfully' });
-            } else {
-                return res.status(404).json({ message: 'User not found' });
-            }
-        } else {
+        if (!tokenCache) {
             return res
                 .status(400)
                 .json({ message: 'Invalid or expired token' });
         }
+
+        const userId = await getUserIdByToken(token);
+        if (!userId) {
+            return res.status(400).json({ message: 'Invalid user ID' });
+        }
+
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        user.verified = true;
+        await user.save();
+
+        if (req.io) {
+            req.io.emit('user-verified', { userId: user._id });
+        }
+
+        removeAllTokens(userId, 'verification').catch(console.error);
+
+        res.status(200).redirect('http://localhost:3000/chat');
     } catch (error) {
         console.error('Error validating user:', error);
         return res.status(500).json({ message: 'Internal server error' });

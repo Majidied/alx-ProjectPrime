@@ -7,6 +7,7 @@ import Register from '../pages/Register';
 import ChatPage from '../pages/ChatPage';
 import WaitingForValidation from '../pages/WaitingForValidation';
 import NotFoundPage from '../pages/NotFoundPage';
+import Home from '../pages/Home';
 
 const Routes = () => {
   const { token } = useAuth();
@@ -27,11 +28,11 @@ const Routes = () => {
   const routesForAuthenticatedOnly = [
     {
       path: '/',
-      element: <ProtectedRoute />, // Wrap the component in ProtectedRoute
+      element: <ProtectedRoute />,
       children: [
         {
           path: '/',
-          element: <div>User Home Page</div>,
+          element: <Home />,
         },
         {
           path: '/chat',
@@ -53,7 +54,7 @@ const Routes = () => {
   const routesForNotAuthenticatedOnly = [
     {
       path: '/',
-      element: <div>Home Page</div>,
+      element: <Home />,
     },
     {
       path: '/login',
