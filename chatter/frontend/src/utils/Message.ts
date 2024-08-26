@@ -18,7 +18,6 @@ export const getMessages = async (contactId: string) => {
   const response = await axios.get(`/api/messages/get/${contactId}`, {
     headers,
   });
-  console.log(response.data);
   return response.data;
 };
 
@@ -37,7 +36,6 @@ export const sendMessage = async (
     { senderId, recipientId, message, contactId },
     { headers }
   );
-  console.log(response.data);
   return response.data;
 };
 
@@ -52,7 +50,6 @@ export const markAsSeen = async (messageId: string) => {
     {},
     { headers }
   );
-  console.log(response.data);
   return response.data;
 };
 
@@ -65,7 +62,6 @@ export const getLastMessage = async (contactId: string) => {
   const response = await axios.get(`/api/messages/get-last/${contactId}`, {
     headers,
   });
-  console.log(response.data);
   return response.data;
 };
 

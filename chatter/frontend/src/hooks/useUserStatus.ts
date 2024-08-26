@@ -25,7 +25,6 @@ export const useUserStatus = (contactId: string) => {
     const handleUserStatusChange = ({ userId, status }: { userId: string; status: boolean }) => {
       if (isMounted && userId === contactId) {
         setIsOnline(status);
-        console.log(`User ${userId} is ${status ? 'online' : 'offline'}`);
       }
     };
 

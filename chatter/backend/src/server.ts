@@ -11,8 +11,7 @@ import { createServer } from 'http';
 import { connectSocket } from './config/socket';
 import chatSocket from './sockets/chatSocket';
 import { Request, Response, NextFunction } from 'express';
-import { Server as SocketIOServer } from 'socket.io'; // Import the 'Server' type from 'socket.io'
-
+import { Server as SocketIOServer } from 'socket.io';
 interface CustomRequest extends Request {
     io: SocketIOServer;
 }

@@ -10,7 +10,6 @@ export const useNotifications = () => {
     const sound = new Audio('/sounds/notification.wav');
     sound.volume = 0.5;
     sound.addEventListener('canplaythrough', () => {
-      console.log('Notification sound loaded');
     }, { once: true });
     sound.addEventListener('error', (error) => {
       console.error('Failed to load notification sound:', error);

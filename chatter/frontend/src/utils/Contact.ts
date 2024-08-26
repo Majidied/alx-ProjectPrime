@@ -21,7 +21,6 @@ export const getContacts = async () => {
   };
 
   const response = await axios.get('/api/contacts/get', { headers });
-  console.log(response.data);
   return response.data;
 };
 
@@ -33,7 +32,6 @@ export const getContactById = async (id: string) => {
   };
 
   const response = await axios.get(`/api/contacts/get/${id}`, { headers });
-  console.log(response.data);
   return response.data;
 }
 
@@ -45,7 +43,6 @@ export const deleteContact = async (id: string) => {
   };
 
   const response = await axios.delete(`/api/contacts/delete/${id}`, { headers });
-  console.log(response.data);
 
   return response.data;
 }
@@ -58,7 +55,6 @@ export const sendContactRequest = async (recipientId: string) => {
   };
 
   const response = await axios.post('/api/contacts/send-request', { recipientId }, { headers });
-  console.log(response.data);
 
   return response.data;
 }
@@ -71,7 +67,6 @@ export const getContactRequests = async () => {
   };
 
   const response = await axios.get('/api/contacts/get-requests', { headers });
-  console.log(response.data);
 
   return response.data;
 }
@@ -96,7 +91,6 @@ export const createContact = async (contactId: string) => {
   };
 
   const response = await axios.post('/api/contacts/create', { contactId }, { headers });
-  console.log(response.data);
 
   return response.data;
 }

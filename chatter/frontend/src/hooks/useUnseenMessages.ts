@@ -17,7 +17,6 @@ export const useUnseenMessages = (senderId: string, contactId: string) => {
   const handleNewMessage = useCallback(
     ({ newMessage }: { newMessage: Message }) => {
       if (newMessage.senderId === senderId && newMessage.contactId === contactId) {
-        console.log('New message received:', newMessage);
         setUnseenMessages((prev) => prev + 1);
       }
     },
