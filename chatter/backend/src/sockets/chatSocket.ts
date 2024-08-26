@@ -8,7 +8,6 @@ import { updateUserStatus } from '../utils/userStatus';
 
 const chatSocket = (io: SocketIOServer) => {
     io.on('connection', (socket: Socket) => {
-        console.log(`User connected: ${socket.id}`);
 
         _handleRegisterUser(socket);
         _handleDisconnect(socket);
