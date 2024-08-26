@@ -2,6 +2,7 @@ import React from 'react';
 import { AppBar, Toolbar, Typography, Button } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { Link as ScrollLink } from 'react-scroll';
+import Logo from '../../assets/Logo.svg'
 
 const Navbar: React.FC = () => {
   return (
@@ -13,8 +14,9 @@ const Navbar: React.FC = () => {
       }}
     >
       <Toolbar className="flex justify-between">
-        <Typography variant="h6" className="text-2xl font-bold text-blue-500">
-          Chatter
+        <Typography variant="h6" className="text-2xl font-bold text-white flex items-center">
+          <img src={Logo} alt="Chatter" className="h-10 w-10 mr-1" />
+          CHATTER
         </Typography>
         <div className="hidden md:flex space-x-6">
           <ScrollLink to="Home" smooth={true} duration={500}>

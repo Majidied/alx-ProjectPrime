@@ -1,9 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Message, getMessages } from '../utils/Message';
 import socket from '../utils/socket';
 
 export const useMessages = (contactId: string) => {
   const [messages, setMessages] = useState<Message[]>([]);
+
+  const notificationSound = useMemo(() => {
+    const sound = new Audio('/sounds/notification.mp3');
+    sound.volume = 0.5;
+    sound.addEventListener('canplaythrough', () => {
+      console.log('Notification sound loaded');
+    }, { once: true });
+    sound.addEventListener('error', (error) => {
+      console.error('Failed to load notification sound:', error);
+    });
+    return sound;
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -23,6 +35,9 @@ export const useMessages = (contactId: string) => {
 
     const handleNewMessage = ({ newMessage }: { newMessage: Message }) => {
       if (newMessage.contactId === contactId && isMounted) {
+        notificationSound.play().catch((error) => {
+          console.error('Error playing sound:', error);
+        });
         setMessages((prevMessages) => [...prevMessages, newMessage]);
       }
     };

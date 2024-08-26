@@ -31,15 +31,15 @@ export const useNotifications = () => {
     fetchInitialNotifications();
 
     const handleContactRequest = ({ senderId }: { senderId: string }) => {
-      console.log('Received contact request from:', senderId);
+      if (senderId) {
       setNotifications((prev) => prev + 1);
       notificationSound.play().catch((error) => {
         console.error('Error playing sound:', error);
       });
     };
+  }
 
     socket.on('connect', () => {
-      console.log('Connected to socket with ID:', socket.id);
     });
 
     socket.on('contactRequest', handleContactRequest);
