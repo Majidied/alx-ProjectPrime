@@ -2,6 +2,13 @@ import { io } from 'socket.io-client';
 
 const token = localStorage.getItem('token');
 
+/**
+ * Initializes a socket connection to the specified URL with the given options.
+ * 
+ * @param url - The URL to connect the socket to.
+ * @param options - The options to configure the socket connection.
+ * @returns A socket instance.
+ */
 const socket = io('http://localhost:5000', {
   reconnection: true, // Allow reconnections
   reconnectionAttempts: 1, // Limit the number of reconnection attempts
