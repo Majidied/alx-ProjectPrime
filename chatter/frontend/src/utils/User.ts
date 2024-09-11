@@ -1,14 +1,24 @@
 import axios from 'axios';
 
+/**
+ * Interface representing a User object.
+ */
 export interface User {
-  _id: string;
-  name: string;
-  username: string;
-  email: string;
-  password: string;
-  verified: boolean;
+  _id: string;           // Unique identifier for the user
+  name: string;          // Full name of the user
+  username: string;      // Username of the user
+  email: string;         // Email address of the user
+  password: string;      // User's password (should be hashed in the database)
+  verified: boolean;     // Indicates whether the user's email is verified
 }
 
+/**
+ * Logs in a user.
+ *
+ * @param email - The user's email address.
+ * @param password - The user's password.
+ * @returns A promise that resolves to an object containing user data if login is successful.
+ */
 export const login = async (
   email: string,
   password: string
@@ -17,6 +27,15 @@ export const login = async (
   return response.data;
 };
 
+/**
+ * Registers a new user.
+ *
+ * @param name - The user's full name.
+ * @param username - The user's chosen username.
+ * @param email - The user's email address.
+ * @param password - The user's password.
+ * @returns A promise that resolves to an object containing user data if registration is successful.
+ */
 export const register = async (
   name: string,
   username: string,
@@ -32,6 +51,12 @@ export const register = async (
   return response.data;
 };
 
+/**
+ * Searches for a user by username.
+ *
+ * @param username - The username to search for.
+ * @returns A promise that resolves to an object containing user data if found.
+ */
 export const searchUser = async (username: string): Promise<object> => {
   const token = localStorage.getItem('token');
 
@@ -47,6 +72,12 @@ export const searchUser = async (username: string): Promise<object> => {
   return response.data;
 };
 
+/**
+ * Retrieves a user's data by their ID.
+ *
+ * @param id - The unique identifier of the user.
+ * @returns A promise that resolves to an object containing user data.
+ */
 export const getUserById = async (id: string): Promise<object> => {
   const token = localStorage.getItem('token');
 
@@ -58,6 +89,11 @@ export const getUserById = async (id: string): Promise<object> => {
   return response.data;
 };
 
+/**
+ * Retrieves the profile data of the logged-in user.
+ *
+ * @returns A promise that resolves to an object containing the user's profile data.
+ */
 export const getUserProfile = async () => {
   const token = localStorage.getItem('token');
 
@@ -69,6 +105,12 @@ export const getUserProfile = async () => {
   return response.data;
 };
 
+/**
+ * Retrieves the avatar image of the logged-in user.
+ *
+ * @returns A promise that resolves to the user's avatar image data as a blob.
+ * @throws An error if the avatar cannot be fetched.
+ */
 export async function getUserAvatar() {
   const token = localStorage.getItem('token');
 
@@ -77,7 +119,7 @@ export async function getUserAvatar() {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      responseType: 'blob',
+      responseType: 'blob', // Specifies the response type as a blob (for binary data)
     });
 
     if (response.status === 200) {
@@ -91,6 +133,12 @@ export async function getUserAvatar() {
   }
 }
 
+/**
+ * Retrieves the avatar image of a specific contact by their ID.
+ *
+ * @param id - The unique identifier of the contact.
+ * @returns A promise that resolves to the contact's avatar image data as a blob.
+ */
 export const getContactAvatar = async (id: string): Promise<string> => {
   const token = localStorage.getItem('token');
   const response = await axios.get(`/api/files/${id}`, {
@@ -100,6 +148,12 @@ export const getContactAvatar = async (id: string): Promise<string> => {
   return response.data;
 };
 
+/**
+ * Retrieves the data of a specific contact by their ID.
+ *
+ * @param id - The unique identifier of the contact.
+ * @returns A promise that resolves to an object containing the contact's data.
+ */
 export const getUserContact = async (id: string): Promise<object> => {
   const token = localStorage.getItem('token');
 
@@ -111,6 +165,11 @@ export const getUserContact = async (id: string): Promise<object> => {
   return response.data;
 };
 
+/**
+ * Logs out the current user.
+ *
+ * @returns A promise that resolves to an object indicating the logout status.
+ */
 export const logout = async () => {
   const token = localStorage.getItem('token');
 
@@ -120,6 +179,13 @@ export const logout = async () => {
   return response.data;
 };
 
+/**
+ * Checks whether a specific user is currently online.
+ *
+ * @param id - The unique identifier of the user.
+ * @returns A promise that resolves to a boolean indicating the user's online status.
+ * @throws An error if the status cannot be fetched.
+ */
 export const getUserStatus = async (id: string): Promise<boolean> => {
   try {
     const token = localStorage.getItem('token');
@@ -147,6 +213,13 @@ export const getUserStatus = async (id: string): Promise<boolean> => {
   }
 };
 
+/**
+ * Uploads a new avatar for the logged-in user.
+ *
+ * @param file - The file object representing the new avatar image.
+ * @returns A promise that resolves to an object containing the upload status and data.
+ * @throws An error if the upload fails.
+ */
 export const uploadAvatar = async (file: File): Promise<object> => {
   const token = localStorage.getItem('token');
 
@@ -168,6 +241,11 @@ export const uploadAvatar = async (file: File): Promise<object> => {
   return response.data;
 };
 
+/**
+ * Checks whether the logged-in user has a verified email.
+ *
+ * @returns A promise that resolves to a boolean indicating whether the user's email is verified.
+ */
 export const isVerifiedUser = async (): Promise<boolean> => {
   const token = localStorage.getItem('token');
 
@@ -184,6 +262,11 @@ export const isVerifiedUser = async (): Promise<boolean> => {
   return response.data.isVerified;
 }
 
+/**
+ * Resends the email verification link to the logged-in user.
+ *
+ * @returns A promise that resolves to an object containing the status of the resend operation.
+ */
 export const resendValidationEmail = async (): Promise<object> => {
   const token = localStorage.getItem('token');
 
@@ -199,4 +282,3 @@ export const resendValidationEmail = async (): Promise<object> => {
 
   return response.data;
 }
-
