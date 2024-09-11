@@ -91,7 +91,7 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
                 <Grid item key={contact._id}>
                   <ContactItem
                     id={contact._id}
-                    contactId={contactId}
+                    contactId={contactId === userProfile?._id ? contact.userId : contact.contactId}
                     onClick={() => onSelectContact(contact)}
                     searchQuery={searchQuery} // Pass search query to filter within ContactItem
                   />

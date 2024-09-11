@@ -1,14 +1,12 @@
 import React, { useState, ChangeEvent } from 'react';
-import { Avatar, Badge, Box, Typography, IconButton } from '@mui/material';
+import { Avatar, Badge, Box, Typography, IconButton, CircularProgress } from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { useUserAvatar } from '../../hooks/useUserAvatar';
+import { useProfileContext } from '../../contexts/UseProfileContext';
 import { uploadAvatar } from '../../utils/User';
 import Notification from '../Notification/Notification';
 
 const UserAvatar: React.FC = () => {
-  const user = useUserProfile();
-  const avatarUrl = useUserAvatar();
+  const { user, avatarUrl } = useProfileContext();
   const [notification, setNotification] = useState({
     type: 'error',
     message: '',
@@ -17,21 +15,30 @@ const UserAvatar: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | undefined>(
     avatarUrl || ''
   );
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0] || null;
     if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB file size limit
+        setNotification({
+          type: 'error',
+          message: 'File size exceeds 5MB limit.',
+          visible: true,
+        });
+        return;
+      }
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewUrl(reader.result as string);
       };
       reader.readAsDataURL(file);
-      // Call handleFileUpload after setting the file
       handleFileUpload(file);
     }
   };
 
   const handleFileUpload = async (file: File) => {
+    setLoading(true);
     try {
       await uploadAvatar(file);
       setNotification({
@@ -47,6 +54,8 @@ const UserAvatar: React.FC = () => {
           visible: true,
         });
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,11 +75,11 @@ const UserAvatar: React.FC = () => {
             <CircleIcon style={{ color: 'green', width: 15, height: 15 }} />
           }
         >
-          <Avatar
-            src={previewUrl || avatarUrl || ''}
-            alt={user?.name || 'User Avatar'}
-            sx={{ width: 70, height: 70 }}
-          />
+          {loading ? (
+            <CircularProgress size={50} />
+          ) : (
+            <Avatar sx={{ width: 50, height: 50 }} src={previewUrl || avatarUrl || ''} />
+          )}
         </Badge>
         <input
           type="file"

@@ -3,24 +3,23 @@ import { VariableSizeList as List, ListChildComponentProps } from 'react-window'
 import { Avatar } from '@mui/material';
 import { useMessages } from '../../hooks/useMessages';
 import { Message } from '../../utils/Message';
-import { useAvatar } from '../../hooks/useAvatar';
 import { motion } from 'framer-motion';
+import { useProfileContext } from '../../contexts/UseProfileContext';
+import { useAvatarContext } from '../../contexts/useAvatarContext';
 import _ from 'lodash';
 
 interface MessageListProps {
   contactId: string;
   ownerId: string;
-  recipientId: string;
 }
 
 const MessageList = forwardRef<{ addMessage: (message: Message) => void }, MessageListProps>(
-  ({ contactId, ownerId, recipientId }, ref) => {
+  ({ contactId, ownerId }, ref) => {
     const { messages, addMessage } = useMessages(contactId);
     const listRef = useRef<List>(null); 
     const prevMessagesLength = useRef(messages.length);
-
-    const avatar = useAvatar(recipientId);
-    const userAvatar = useAvatar(ownerId);
+    const avatar = useAvatarContext().avatarUrl;
+    const userAvatar = useProfileContext().avatarUrl;
 
     useImperativeHandle(ref, () => ({
       addMessage(newMessage: Message) {

@@ -6,6 +6,7 @@ import { useUserStatus } from '../../hooks/useUserStatus';
 import { useMessageContext } from '../../contexts/MessageContext';
 import { useLastMessage } from '../../hooks/useLastMessage';
 import { useUnseenMessages } from '../../hooks/useUnseenMessages';
+import { useAvatarContext } from '../../contexts/useAvatarContext';
 
 interface ContactItemProps {
   id: string;
@@ -25,7 +26,8 @@ export default function ContactItem({
     contactId,
     id
   );
-  const avatarUrl = useAvatar(contactId);
+  const avatarUrl = useAvatar(contactId); 
+  const { setAvatarUrl } = useAvatarContext();
   const isOnline = useUserStatus(contactId);
   const lastMessageLocal = useLastMessage(id);
   const { lastMessages } = useMessageContext();
@@ -72,6 +74,7 @@ export default function ContactItem({
     : lastMessageTime;
 
   const handleOnClick = () => {
+    setAvatarUrl(avatarUrl);
     resetUnseenMessages();
     onClick();
   };

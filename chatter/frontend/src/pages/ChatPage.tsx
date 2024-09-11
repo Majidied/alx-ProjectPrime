@@ -12,6 +12,8 @@ import { MessageProvider } from '../contexts/MessageContext';
 import ChatsSideBar from '../components/ChatsSideBar/ChatsSideBar';
 import ChatWindow from '../components/ChatWindow/ChatWindow';
 import useVerification from '../hooks/useVerification';
+import { ProfileProvider } from '../contexts/UseProfileContext';
+import { AvatarProvider } from '../contexts/useAvatarContext';
 
 function ChatPage() {
   const [contacts, setContacts] = useState([] as Contact[]);
@@ -47,6 +49,8 @@ function ChatPage() {
       direction={isMobile ? 'column' : 'row'}
       className="h-screen"
     >
+      <ProfileProvider>
+      <AvatarProvider>
       <MessageProvider>
         {!isMobile || !selectedContact ? (
           <Grid
@@ -119,6 +123,8 @@ function ChatPage() {
           </Grid>
         ) : null}
       </MessageProvider>
+      </AvatarProvider>
+      </ProfileProvider>
     </Grid>
   );
 }

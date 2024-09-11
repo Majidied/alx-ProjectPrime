@@ -78,11 +78,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <MessageList
             contactId={contact._id as string}
             ownerId={userProfile._id as string}
-            recipientId={
-              contact.userId === userProfile._id
-                ? contact.contactId
-                : contact.userId
-            }
             ref={messageListRef}
           />
           <InputArea
