@@ -2,12 +2,20 @@ import { AxiosError } from 'axios';
 import { useState, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import { Input, Button, Alert, AlertColor } from '@mui/material';
+import {
+  Input,
+  Button,
+  Alert,
+  AlertColor,
+  CircularProgress,
+} from '@mui/material';
 import { register } from '../utils/User';
+import Notification from '../components/Notification/Notification';
 
 const Register = () => {
   const { setToken } = useAuth();
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
 
   const [notification, setNotification] = useState({
     type: '',
@@ -90,24 +98,19 @@ const Register = () => {
     if (!isValidUsername(username)) {
       setNotification({
         type: 'error',
-        message: 'Username should be at least 3 characters long and contain no spaces.',
+        message:
+          'Username should be at least 3 characters long and contain no spaces.',
         visible: true,
       });
       return;
     }
 
     try {
+      setIsLoading(true);
       const response = await register(name, username, email, password);
 
-      if (response) {
-        setToken((response as { token: string })?.token);
-        setNotification({
-          type: 'success',
-          message: 'Registration successful! Redirecting...',
-          visible: true,
-        });
-        setTimeout(() => navigate('/verify', { replace: true }), 3000);
-      }
+      setToken((response as { token: string })?.token);
+      navigate('/verify', { replace: true });
     } catch (error) {
       console.error('Registration error:', error);
       const errorMessage =
@@ -118,6 +121,8 @@ const Register = () => {
         message: errorMessage,
         visible: true,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -129,7 +134,7 @@ const Register = () => {
       <section className="bg-white flex flex-col md:flex-row items-center justify-center w-full max-w-4xl rounded-lg shadow-lg overflow-hidden backdrop-blur-md">
         <div
           className="hidden md:flex flex-col items-center justify-center bg-cover bg-center h-full w-1/2 rounded-l-lg p-28"
-          style={{ backgroundImage: `url('src/assets/register.jpg')`}}
+          style={{ backgroundImage: `url('src/assets/register.jpg')` }}
         >
           <h1 className="text-5xl font-bold text-black mb-4 bg-gradient-to-r from-cyan-600 to-violet-900 bg-clip-text text-transparent">
             Join <span>Chatter</span>!
@@ -155,7 +160,9 @@ const Register = () => {
             {notification.visible && (
               <Alert
                 severity={notification.type as AlertColor}
-                onClose={() => setNotification({ ...notification, visible: false })}
+                onClose={() =>
+                  setNotification({ ...notification, visible: false })
+                }
                 className="mb-4"
               >
                 {notification.message}
@@ -232,20 +239,30 @@ const Register = () => {
                   }`}
                   placeholder="Confirm your password"
                 />
-                {!isPasswordMatch && confirmPassword !== '' && (
-                  <Alert severity="error" className="text-sm">
-                    Passwords do not match
-                  </Alert>
-                )}
               </div>
             </div>
+            {!isPasswordMatch && confirmPassword !== '' && (
+              <Alert
+                severity="error"
+                className="text-sm"
+                style={{ fontSize: '0.875rem', margin: '0.5rem' }}
+              >
+                Passwords do not match
+              </Alert>
+            )}
           </div>
           <Button
             onClick={handleRegister}
+            className="mt-4 w-full"
             variant="contained"
-            className="bg-blue-500 text-white w-full p-2 mt-4"
+            color="primary"
+            disabled={isLoading} // Disable the button during loading
           >
-            Register
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Register'
+            )}
           </Button>
           <p className="mt-4 text-center">
             Already have an account?{' '}
@@ -256,6 +273,13 @@ const Register = () => {
           </p>
         </div>
       </section>
+      {notification.visible && notification.type === 'success' && (
+        <Notification
+          message={notification.message}
+          type="success"
+          onClose={() => setNotification({ ...notification, visible: false })}
+        />
+      )}
     </div>
   );
 };

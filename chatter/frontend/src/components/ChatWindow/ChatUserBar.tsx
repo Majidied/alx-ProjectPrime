@@ -1,16 +1,15 @@
 import { Avatar, IconButton } from '@mui/material';
 import { Call, VideoCall, MoreVert, ArrowBack } from '@mui/icons-material';
 import { useContact } from '../../hooks/useContact';
-import { useAvatarContext } from '../../contexts/useAvatarContext';
 
 interface UserBarProps {
+  avatarUrl?: string;
   recipientId: string;
   handleBackClick?: () => void;
 }
 
-const UserBar: React.FC<UserBarProps> = ({ recipientId, handleBackClick }) => {
+const UserBar: React.FC<UserBarProps> = ({ avatarUrl, recipientId, handleBackClick }) => {
   const contact = useContact(recipientId);
-  const avatarUrl = useAvatarContext().avatarUrl;
   
 
   return (

@@ -1,4 +1,10 @@
-import { Avatar, Badge, Box, Typography } from '@mui/material';
+import {
+  Avatar,
+  Badge,
+  Box,
+  Typography,
+  CircularProgress,
+} from '@mui/material';
 import CircleIcon from '@mui/icons-material/Circle';
 import { useContact } from '../../hooks/useContact';
 import { useAvatar } from '../../hooks/useAvatar';
@@ -6,7 +12,7 @@ import { useUserStatus } from '../../hooks/useUserStatus';
 import { useMessageContext } from '../../contexts/MessageContext';
 import { useLastMessage } from '../../hooks/useLastMessage';
 import { useUnseenMessages } from '../../hooks/useUnseenMessages';
-import { useAvatarContext } from '../../contexts/useAvatarContext';
+import '../../styles/GradientCircularProgress.css'
 
 interface ContactItemProps {
   id: string;
@@ -26,15 +32,18 @@ export default function ContactItem({
     contactId,
     id
   );
-  const avatarUrl = useAvatar(contactId); 
-  const { setAvatarUrl } = useAvatarContext();
+  const avatarUrl = useAvatar(contactId);
   const isOnline = useUserStatus(contactId);
   const lastMessageLocal = useLastMessage(id);
   const { lastMessages } = useMessageContext();
   const lastMessage = lastMessages[id];
+  const isLoading = !contact || !avatarUrl;
 
   // Skip rendering if the contact name does not match the search query
-  if (contact?.name && !contact.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+  if (
+    contact?.name &&
+    !contact.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) {
     return null;
   }
 
@@ -74,9 +83,8 @@ export default function ContactItem({
     : lastMessageTime;
 
   const handleOnClick = () => {
-    setAvatarUrl(avatarUrl);
-    resetUnseenMessages();
     onClick();
+    resetUnseenMessages();
   };
 
   return (
@@ -97,11 +105,37 @@ export default function ContactItem({
             )
           }
         >
-          <Avatar
-            src={avatarUrl || ''}
-            alt={contact?.name || 'Avatar'}
-            sx={{ width: 48, height: 48 }}
-          />
+          {isLoading ? (
+            <div style={{ position: 'relative', display: 'inline-flex' }}>
+              <CircularProgress
+                size={40}
+                style={{
+                  color: 'transparent', // Make the progress itself transparent
+                }}
+              />
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  borderRadius: '50%',
+                  background: 'conic-gradient(#6A82FB, #FC5C7D)',
+                  mask: 'radial-gradient(closest-side, transparent 80%, black 100%)',
+                  WebkitMask:
+                    'radial-gradient(closest-side, transparent 80%, black 100%)',
+                  animation: 'rotate 2s linear infinite', // Animation to rotate the gradient
+                }}
+              />
+            </div>
+          ) : (
+            <Avatar
+              src={avatarUrl || ''}
+              alt={contact?.name || 'Unknown Name'}
+              sx={{ width: 40, height: 40 }}
+            />
+          )}
         </Badge>
         <Box ml={2}>
           <Typography className="text-gray-900 font-semibold text-base">

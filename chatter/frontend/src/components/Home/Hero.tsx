@@ -1,7 +1,7 @@
 import React from 'react';
 import { Typography, Button, Container } from '@mui/material';
 import { motion } from 'framer-motion';
-import hero from '../../assets/hero.png';
+import hero from '../../assets/hero.jpg';
 import { Link } from 'react-router-dom';
 
 const Hero: React.FC = () => {
@@ -37,7 +37,7 @@ const Hero: React.FC = () => {
               className="text-gray-300 mb-8 text-base sm:text-lg md:text-xl lg:text-2xl"
               style={{ maxWidth: '600px', margin: '0 auto' }}
             >
-              Dive into my project, Chatter—a fun and engaging way to connect with friends and communities. I’m excited to share this with you!
+              Dive into my project, Chatter a fun and engaging way to connect with friends and communities. I’m excited to share this with you!
             </Typography>
           </motion.div>
 

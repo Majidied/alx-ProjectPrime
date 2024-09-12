@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import { login } from '../utils/User';
-import { Input, Button } from '@mui/material';
+import { Input, Button, CircularProgress } from '@mui/material';
 import Notification from '../components/Notification/Notification';
 import { AxiosError } from 'axios';
 
@@ -16,9 +16,11 @@ const Login = () => {
   });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async () => {
     try {
+      setIsLoading(true);
       const response = await login(email, password);
       const token = (response as { token: string })?.token;
       if (token) {
@@ -36,6 +38,8 @@ const Login = () => {
         message: errorMessage,
         visible: true,
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,7 +103,7 @@ const Login = () => {
             variant="contained"
             className="bg-blue-500 text-white w-full p-2 mb-4"
           >
-            Log In
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Login'}
           </Button>
           <p className="mt-4 text-center">
             New here?{' '}

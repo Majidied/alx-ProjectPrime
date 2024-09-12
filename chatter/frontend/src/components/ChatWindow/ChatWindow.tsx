@@ -6,6 +6,7 @@ import { useUserProfile } from '../../hooks/useUserProfile';
 import { Contact } from '../../utils/Contact';
 import { sendMessage, Message } from '../../utils/Message';
 import { useMessageContext } from '../../contexts/MessageContext';
+import { useAvatar } from '../../hooks/useAvatar';
 
 
 interface ChatWindowProps {
@@ -23,6 +24,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     null
   );
   const { setLastMessage } = useMessageContext();
+  const avatarUrl = useAvatar((contact?.userId === userProfile?._id
+    ? contact?.contactId
+    : contact?.userId) as string);
 
   const addEmoji = (emoji: { emoji: string }) => {
     setMessage((prevMessage) => prevMessage + emoji.emoji);
@@ -58,6 +62,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         <>
           {handleBackClick && (
             <UserBar
+              avatarUrl={avatarUrl || ''}
               recipientId={
                 contact.userId === userProfile._id
                   ? contact.contactId
@@ -68,6 +73,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           )}
           {!handleBackClick && (
             <UserBar
+              avatarUrl={avatarUrl || ''}
               recipientId={
                 contact.userId === userProfile._id
                   ? contact.contactId
@@ -76,6 +82,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             />
           )}
           <MessageList
+            avatar={avatarUrl || ''}
             contactId={contact._id as string}
             ownerId={userProfile._id as string}
             ref={messageListRef}

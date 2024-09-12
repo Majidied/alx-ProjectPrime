@@ -5,20 +5,19 @@ import { useMessages } from '../../hooks/useMessages';
 import { Message } from '../../utils/Message';
 import { motion } from 'framer-motion';
 import { useProfileContext } from '../../contexts/UseProfileContext';
-import { useAvatarContext } from '../../contexts/useAvatarContext';
 import _ from 'lodash';
 
 interface MessageListProps {
+  avatar: string;
   contactId: string;
   ownerId: string;
 }
 
 const MessageList = forwardRef<{ addMessage: (message: Message) => void }, MessageListProps>(
-  ({ contactId, ownerId }, ref) => {
+  ({ avatar, contactId, ownerId }, ref) => {
     const { messages, addMessage } = useMessages(contactId);
     const listRef = useRef<List>(null); 
     const prevMessagesLength = useRef(messages.length);
-    const avatar = useAvatarContext().avatarUrl;
     const userAvatar = useProfileContext().avatarUrl;
 
     useImperativeHandle(ref, () => ({
@@ -61,7 +60,7 @@ const MessageList = forwardRef<{ addMessage: (message: Message) => void }, Messa
         const isNewMessage = index === messages.length - 1;
 
         return (
-          <div style={style} className={`flex items-start space-x-4 ${isOwner ? 'justify-end' : ''}`}>
+          <div style={style} className={`flex items-start space-x-4 ${isOwner ? 'justify-end' : ''} mt-4`}>
             {!isOwner && (
               <Avatar
                 src={avatar || ''}

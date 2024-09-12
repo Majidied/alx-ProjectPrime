@@ -13,7 +13,7 @@ import ChatsSideBar from '../components/ChatsSideBar/ChatsSideBar';
 import ChatWindow from '../components/ChatWindow/ChatWindow';
 import useVerification from '../hooks/useVerification';
 import { ProfileProvider } from '../contexts/UseProfileContext';
-import { AvatarProvider } from '../contexts/useAvatarContext';
+import SelectChat from '../assets/selectChat.png';
 
 function ChatPage() {
   const [contacts, setContacts] = useState([] as Contact[]);
@@ -50,7 +50,6 @@ function ChatPage() {
       className="h-screen"
     >
       <ProfileProvider>
-      <AvatarProvider>
       <MessageProvider>
         {!isMobile || !selectedContact ? (
           <Grid
@@ -115,7 +114,8 @@ function ChatPage() {
                   height: '100%',
                 }}
               >
-                <Typography variant="h6" color="textSecondary" align="center">
+                <Typography variant="h6" color="textSecondary" align="center" className='flex flex-col items-center'>
+                  <img src={SelectChat} alt="Select Chat" width={200} />
                   Please select a contact to start chatting.
                 </Typography>
               </div>
@@ -123,7 +123,6 @@ function ChatPage() {
           </Grid>
         ) : null}
       </MessageProvider>
-      </AvatarProvider>
       </ProfileProvider>
     </Grid>
   );

@@ -87,7 +87,6 @@ export const getLastMessage = async (contactId: string) => {
 
   const headers = { Authorization: `Bearer ${token}` };
 
-  console.log('api/messages/get-last/' + contactId);
   const response = await axios.get(`/api/messages/get-last/${contactId}`, {
     headers,
   });
