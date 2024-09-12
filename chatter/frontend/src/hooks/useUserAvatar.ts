@@ -17,7 +17,6 @@ export const useUserAvatar = () => {
      */
     const fetchUserAvatar = async () => {
       try {
-<<<<<<< HEAD
         if (!avatarUrl) {
           const avatarBlob = await getUserAvatar();
           const url = URL.createObjectURL(avatarBlob);
@@ -29,19 +28,6 @@ export const useUserAvatar = () => {
 
           });
         }
-=======
-        // Fetch the user's avatar as a blob
-        const avatarBlob = await getUserAvatar();
-        // Create a URL for the avatar blob
-        const url = URL.createObjectURL(avatarBlob);
-        // Update the avatar URL state, revoking the previous URL if it exists
-        setAvatarUrl((prevUrl) => {
-          if (prevUrl) {
-            URL.revokeObjectURL(prevUrl); // Revoke the previous URL to free up memory
-          }
-          return url;
-        });
->>>>>>> 596c7900656f9addee252c3d0a7590f9242f5212
       } catch (error) {
         // Log an error if fetching the avatar fails
         console.error('Failed to fetch user avatar:', error);
