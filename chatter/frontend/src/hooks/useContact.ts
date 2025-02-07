@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { getUserContact } from '../utils/User';
-import { Contact } from '../utils/Contact';
+import { useQuery } from '@tanstack/react-query';
+import { Contact } from '../models/Contact';
+import apiClient from '../api/apiClinet';
 
 /**
  * Custom hook to fetch and manage a specific contact's data.
@@ -9,29 +9,17 @@ import { Contact } from '../utils/Contact';
  * @returns The contact data as a `Contact` object, or `null` if not available or an error occurs.
  */
 export const useContact = (contactId: string) => {
-  // State to hold the contact data
-  const [contact, setContact] = useState<Contact | null>(null);
+  const fetchContact = async (): Promise<Contact> => {
+    const fetchedContact = await apiClient.get(`/users/${contactId}`);
+    return fetchedContact.data as Contact;
+  };
 
-  useEffect(() => {
-    /**
-     * Function to fetch the contact data from the server.
-     */
-    const fetchContact = async () => {
-      try {
-        // Fetch the contact data using the provided contactId
-        const fetchedContact = await getUserContact(contactId);
-        // Cast the fetched data to the Contact type and update the state
-        setContact(fetchedContact as Contact);
-      } catch (error) {
-        // Log an error if the fetch fails
-        console.error('Failed to fetch contact:', error);
-      }
-    };
+  const { data: contact, error, isLoading } = useQuery<Contact, Error>({
+    queryKey: ['contact', contactId],
+    queryFn: fetchContact,
+    enabled: !!contactId, // Only run the query if contactId is truthy
+    staleTime: 1000 * 60 * 60 * 24,
+  });
 
-    // Call the fetchContact function to initiate the fetch
-    fetchContact();
-  }, [contactId]); // The effect depends on the contactId and will rerun if it changes
-
-  // Return the current contact data
-  return contact;
+  return { contact, error, isLoading };
 };

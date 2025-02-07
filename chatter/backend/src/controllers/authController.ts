@@ -66,7 +66,7 @@ export const registerUser = async (req: Request, res: Response) => {
             });
 
         res.status(201).json({
-            token: generateToken(user._id as unknown as string, 'auth'),
+            token: generateToken(user._id as string, 'auth'),
             message:
                 'User registered successfully, Please verify your email to confirm registration',
         });
@@ -166,6 +166,8 @@ export const logoutUser = (req: Request, res: Response) => {
  * verified or if the token is invalid.
  */
 export const ValidateUser = async (req: CustomRequest, res: Response) => {
+    const url = `${req.protocol}://${req.hostname}:3000`;
+
     try {
         const token = req.params.token;
         if (!token) {
@@ -198,7 +200,7 @@ export const ValidateUser = async (req: CustomRequest, res: Response) => {
 
         removeAllTokens(userId, 'verification').catch(console.error);
 
-        res.status(200).redirect('http://localhost:3000/chat');
+        res.status(200).redirect(url);
     } catch (error) {
         console.error('Error validating user:', error);
         return res.status(500).json({ message: 'Internal server error' });

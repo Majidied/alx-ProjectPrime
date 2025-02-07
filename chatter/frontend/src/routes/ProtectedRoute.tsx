@@ -1,8 +1,7 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
 
 export const ProtectedRoute = () => {
-  const { token } = useAuth();
+  const token = localStorage.getItem('token') || '';
 
   // Check if the user is authenticated
   if (!token) {

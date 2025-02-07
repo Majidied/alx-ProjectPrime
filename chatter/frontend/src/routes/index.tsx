@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { RouterProvider, createBrowserRouter, Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { ProtectedRoute } from './ProtectedRoute';
 import Login from '../pages/Login';
@@ -31,11 +31,11 @@ const Routes = () => {
       element: <ProtectedRoute />,
       children: [
         {
-          path: '/',
+          path: '/landing',
           element: <Home />,
         },
         {
-          path: '/chat',
+          path: '/',
           element: <ChatPage />,
         },
         {
@@ -53,7 +53,7 @@ const Routes = () => {
   // Define routes accessible only to non-authenticated users
   const routesForNotAuthenticatedOnly = [
     {
-      path: '/',
+      path: '/landing',
       element: <Home />,
     },
     {
@@ -77,7 +77,12 @@ const Routes = () => {
   // Combine and conditionally include routes based on authentication status
   const router = createBrowserRouter([
     ...routesForPublic,
-    ...(!token ? routesForNotAuthenticatedOnly : []),
+    ...(!token ? routesForNotAuthenticatedOnly : [
+      ...['/login', '/register'].map(path => ({
+        path,
+        element: <Navigate to="/" />,
+      })),
+    ]),
     ...routesForAuthenticatedOnly,
     ...notFoundRoute, // Include the 404 route last
   ]);

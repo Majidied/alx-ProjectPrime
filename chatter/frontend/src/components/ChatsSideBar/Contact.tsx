@@ -10,8 +10,7 @@ import { useContact } from '../../hooks/useContact';
 import { useAvatar } from '../../hooks/useAvatar';
 import { useUserStatus } from '../../hooks/useUserStatus';
 import { useMessageContext } from '../../contexts/MessageContext';
-import { useLastMessage } from '../../hooks/useLastMessage';
-import { useUnseenMessages } from '../../hooks/useUnseenMessages';
+import { useLastMessage, useUnseenMessages } from '../../hooks/useMessages';
 import '../../styles/GradientCircularProgress.css'
 
 interface ContactItemProps {
@@ -27,17 +26,16 @@ export default function ContactItem({
   onClick,
   searchQuery,
 }: ContactItemProps) {
-  const contact = useContact(contactId);
+  const {contact, isLoading: ContactLoad} = useContact(contactId);
   const { unseenMessages, resetUnseenMessages } = useUnseenMessages(
     contactId,
     id
   );
-  const avatarUrl = useAvatar(contactId);
+  const { avatarUrl, isLoading } = useAvatar(contactId);
   const isOnline = useUserStatus(contactId);
-  const lastMessageLocal = useLastMessage(id);
+  const { lastMessage: lastMessageLocal } = useLastMessage(id);
   const { lastMessages } = useMessageContext();
   const lastMessage = lastMessages[id];
-  const isLoading = !contact || !avatarUrl;
 
   // Skip rendering if the contact name does not match the search query
   if (
@@ -139,7 +137,7 @@ export default function ContactItem({
         </Badge>
         <Box ml={2}>
           <Typography className="text-gray-900 font-semibold text-base">
-            {contact?.name || 'Unknown Name'}
+            {ContactLoad ? 'Loading...' : contact?.name || 'Unknown Name'}
           </Typography>
           <Typography
             variant="body2"

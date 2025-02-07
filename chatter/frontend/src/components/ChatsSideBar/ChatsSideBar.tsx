@@ -1,35 +1,46 @@
 import { Grid, IconButton, Divider } from '@mui/material';
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import UserAvatar from './UserAvatar';
 import ContactItem from './Contact';
 import UserBar from './UserBar';
 import AddIcon from '@mui/icons-material/Add';
 import SearchUserModal from './SearchUserModal';
-import { Contact } from '../../utils/Contact';
-import { useUserProfile } from '../../hooks/useUserProfile';
+import { Contact } from '../../models/Contact';
+import { useUserProfile } from '../../hooks/useUser';
+import { useContacts } from '../../hooks/useContacts';
+import LoadingAnimation from '../Spinner/LoadingAnimation';
+import { useMessageContext } from '../../contexts/MessageContext';
+
+
 
 interface ChatsSideBarProps {
-  contacts: Contact[];
   onSelectContact: (contact: Contact) => void;
 }
 
-function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
+function ChatsSideBar({ onSelectContact }: ChatsSideBarProps) {
+  const { data: contactsData , isLoading } = useContacts();
+  const contacts: Contact[] = contactsData?.contacts || [];
   const [isModalOpen, setModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const userProfile = useUserProfile();
+  const { userProfile } = useUserProfile();
+  const { lastMessages } = useMessageContext();
 
   const handleOpenModal = () => setModalOpen(true);
   const handleCloseModal = () => setModalOpen(false);
-
-  // Filtered contact IDs based on the search query
-  const filteredContactIds = useMemo(() => {
-    return contacts.map(contact => {
-      const contactId = userProfile && userProfile._id === contact.userId
-        ? contact.contactId
-        : contact.userId;
-      return contactId;
+  // Get last message timestamps for sorting
+  const sortedContacts = useMemo(() => {
+    return [...contacts].sort((a, b) => {
+      const lastMessageA: number = Number(lastMessages[a._id]?.timestamp) || 0;
+      const lastMessageB: number = Number(lastMessages[b._id]?.timestamp) || 0;
+      // Compare timestamps for sorting
+      return lastMessageB - lastMessageA;
     });
-  }, [contacts, userProfile]);
+  }, [contacts, lastMessages]); // Re-sort when contacts change
+
+
+  if (isLoading) {
+    return <LoadingAnimation />;
+  }
 
   return (
     <div className="p-1 h-full bg-gray-100">
@@ -85,15 +96,14 @@ function ChatsSideBar({ contacts, onSelectContact }: ChatsSideBarProps) {
         {/* Contact List */}
         <Grid item xs className="overflow-y-auto mt-2">
           <Grid container direction="column" spacing={1.5}>
-            {contacts.map((contact, index) => {
-              const contactId = filteredContactIds[index];
+            {sortedContacts.map((contact) => {
               return (
                 <Grid item key={contact._id}>
                   <ContactItem
-                    id={contact._id}
-                    contactId={contactId === userProfile?._id ? contact.userId : contact.contactId}
-                    onClick={() => onSelectContact(contact)}
-                    searchQuery={searchQuery} // Pass search query to filter within ContactItem
+                  id={contact._id}
+                  contactId={contact.contactId === userProfile?._id ? contact.userId : contact.contactId}
+                  onClick={() => onSelectContact(contact)}
+                  searchQuery={searchQuery} // Pass search query to filter within ContactItem
                   />
                 </Grid>
               );

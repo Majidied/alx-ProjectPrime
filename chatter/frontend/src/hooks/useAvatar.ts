@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { getContactAvatar } from '../utils/User';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+import apiClient from '../api/apiClinet';
 
 /**
  * Custom hook to fetch and manage the avatar URL for a given contact.
@@ -8,59 +9,60 @@ import { getContactAvatar } from '../utils/User';
  * @returns The URL of the contact's avatar as a string, or null if not available.
  */
 export const useAvatar = (contactId: string) => {
-  // State to hold the URL of the avatar image
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [cachedAvatar, setCachedAvatar] = useState<string | null>(null);
 
-  // Ref to hold the previous avatar URL for cleanup purposes
-  const previousAvatarUrl = useRef<string | null>(null);
-
+  // Check local storage on mount
   useEffect(() => {
-    let isMounted = true; // Flag to track if the component is still mounted
-
-    /**
-     * Function to fetch the avatar image as a blob, create an object URL, and set it in state.
-     */
-    const fetchAvatar = async () => {
-      try {
-        // Fetch the avatar file (assumed to be a Blob)
-        const avatarFile = await getContactAvatar(contactId);
-        const avatarBlob = avatarFile as unknown as Blob;
-
-        // Create an object URL for the avatar image
-        const avatarObjectUrl = URL.createObjectURL(avatarBlob);
-
-        // If the component is still mounted, update the avatar URL state
-        if (isMounted) {
-          setAvatarUrl(avatarObjectUrl);
-        }
-
-        // Revoke the previous avatar URL to free up memory
-        if (previousAvatarUrl.current) {
-          URL.revokeObjectURL(previousAvatarUrl.current);
-        }
-
-        // Store the current avatar URL for later cleanup
-        previousAvatarUrl.current = avatarObjectUrl;
-      } catch (error) {
-        // Log an error if the fetch fails and the component is still mounted
-        if (isMounted) {
-          console.error('Failed to fetch avatar:', error);
-        }
+    const storedData = localStorage.getItem(`avatar-${contactId}`);
+    const storedTime = localStorage.getItem(`avatarTime-${contactId}`);
+    
+    if (storedData && storedTime) {
+      const timeDiff = Date.now() - parseInt(storedTime, 10);
+      if (timeDiff < 1000 * 60 * 60) { // 1 hour cache
+        setCachedAvatar(storedData);
       }
-    };
-
-    // Call the fetchAvatar function to initiate the fetch
-    fetchAvatar();
-
-    // Cleanup function to run when the component unmounts
-    return () => {
-      isMounted = false; // Mark the component as unmounted
-      if (previousAvatarUrl.current) {
-        URL.revokeObjectURL(previousAvatarUrl.current); // Revoke the last avatar URL to free up memory
-      }
-    };
+    }
   }, [contactId]);
 
-  // Return the current avatar URL
-  return avatarUrl;
+  const fetchAvatar = async () => {
+    try {
+      const avatarFile = await apiClient.get(`/files/${contactId}`, {
+        responseType: 'blob',
+      });
+
+      const avatarBlob = avatarFile.data as Blob;
+      const reader = new FileReader();
+
+      return new Promise<string>((resolve) => {
+        reader.onloadend = () => {
+          const dataUrl = reader.result as string;
+
+          // Store in localStorage & React Query Cache
+          localStorage.setItem(`avatar-${contactId}`, dataUrl);
+          localStorage.setItem(`avatarTime-${contactId}`, Date.now().toString());
+          queryClient.setQueryData(['avatar', contactId], dataUrl);
+          setCachedAvatar(dataUrl);
+
+          resolve(dataUrl);
+        };
+        reader.readAsDataURL(avatarBlob);
+      });
+    } catch (error) {
+      console.error('Failed to fetch avatar:', error);
+      throw error;
+    }
+  };
+
+  const { data: avatarUrl, isLoading, error } = useQuery<string, Error>({
+    queryKey: ['avatar', contactId],
+    queryFn: fetchAvatar,
+    enabled: !!contactId && !cachedAvatar, // Fetch only if not already cached
+    staleTime: 1000 * 60 * 10, // Consider fresh for 10 minutes
+    gcTime: 1000 * 60 * 60, // Keep in cache for 1 hour
+    refetchOnWindowFocus: false,
+    initialData: cachedAvatar || queryClient.getQueryData(['avatar', contactId]),
+  });
+
+  return { avatarUrl: cachedAvatar || avatarUrl, isLoading, error };
 };

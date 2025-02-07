@@ -1,14 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useLogout } from '../hooks/useAuth';
 import logoutImage from '../assets/logout.png'; // Import the image
+import Notification from '../components/Notification/Notification';
 
 const Logout = () => {
-  const { setToken } = useAuth();
   const navigate = useNavigate();
   const [countdown, setCountdown] = useState(4);
+  const [response, setResponse] = useState<string | null>(null);
+  const { mutate } = useLogout();
+
 
   useEffect(() => {
+    mutate();
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
       return () => clearTimeout(timer);
@@ -17,10 +21,9 @@ const Logout = () => {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countdown]);
-
   const handleLogout = () => {
-    setToken(null);
-    navigate('/', { replace: true });
+    setResponse('You have been logged out successfully.');
+    navigate('/login', { replace: true });
   };
 
   return (
@@ -49,6 +52,12 @@ const Logout = () => {
             ></div>
           </div>
         </div>
+        {response && (
+          <Notification
+            message={response}
+            type={'success'}
+            onClose={() => setResponse(null)} />
+        )}
       </div>
     </div>
   );

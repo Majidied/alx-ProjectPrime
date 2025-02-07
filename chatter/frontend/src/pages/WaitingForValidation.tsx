@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Button, Alert, CircularProgress, AlertColor } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import { resendValidationEmail, isVerifiedUser } from '../utils/User';
-import socket from '../utils/socket';
-import { useUserProfile } from '../hooks/useUserProfile';
+import { resendValidationEmail } from '../api/userApi';
+import useVerification from '../hooks/useVerification';
 
 const WaitingForValidation = () => {
   const [notification, setNotification] = useState({
@@ -15,7 +14,6 @@ const WaitingForValidation = () => {
   const [resendDisabled, setResendDisabled] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const navigate = useNavigate();
-  const user = useUserProfile();
 
   const handleResendValidation = async () => {
     setLoading(true);
@@ -49,38 +47,23 @@ const WaitingForValidation = () => {
     setTimeout(() => navigate('/logout'), 1000);
   };
 
+  const { isVerified, isError } = useVerification();
+
   useEffect(() => {
-    const checkVerification = async () => {
-      try {
-        const response = await isVerifiedUser();
-
-        if (response) {
-          navigate('/chat');
-        }
-      } catch (error) {
-        console.error('Error checking verification:', error);
-      }
-    };
-
-    socket.on('user-verified', (userId: string) => {
-      if (userId === user?._id) {
-        setNotification({
-          type: 'success',
-          message: 'Your account has been verified. Redirecting to chat...',
-          visible: true,
-        });
-        setTimeout(() => {
-          navigate('/chat');
-        }, 1000);
-      }
-    });
-
-    checkVerification();
-
-    return () => {
-      socket.off('user-verified');
-    };
-  }, [navigate, user?._id]);
+    if (isError) {
+      setNotification({
+        type: 'error',
+        message: 'Failed to verify user.',
+        visible: true,
+      });
+    }
+    
+    if (!isVerified) {
+      navigate('/verify');
+    } else {
+      navigate('/');
+    }
+  }, [isVerified, isError, navigate]);
 
   return (
     <div

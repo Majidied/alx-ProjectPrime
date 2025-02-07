@@ -1,11 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { List, ListItem, ListItemText, Paper, Button, Avatar, Box } from '@mui/material';
-import { CheckCircle, Cancel } from '@mui/icons-material';
-import { createContact, declineContactRequest } from '../../utils/Contact';
-import Notification from '../Notification/Notification';
-import { AxiosError } from 'axios';
+import React, { useState, useEffect } from 'react';
 import { useContactRequests } from '../../hooks/useContactRequests';
-import { getContactAvatar } from '../../utils/User';
+import { useNotification } from '../../hooks/useNotifications';
+import { createContact, declineContactRequest } from '../../api/contactsApi';
+import { Avatar, Box, Button, List, ListItem, ListItemText } from '@mui/material';
+import { CheckCircle, Cancel } from '@mui/icons-material';
 
 interface NotificationDropdownProps {
   onClose: () => void;
@@ -13,108 +11,65 @@ interface NotificationDropdownProps {
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, onDecline }) => {
-  const { notifications, searchResults, setNotifications, setSearchResults } = useContactRequests();
+  const { notifications, searchResults, notificationsError, usersError } = useContactRequests();
+  const [localSearchResults, setLocalSearchResults] = useState(searchResults);
   const [notification, setNotification] = useState({
     type: 'error' as 'error' | 'success',
     message: '',
     visible: false,
   });
-  const [avatars, setAvatars] = useState<{ [key: string]: string }>({});
-  const cachedAvatars = useRef<{ [key: string]: string }>({});
+  const { data: avatars = {}, isLoading, error } = useNotification(notifications);
+
+  useEffect(() => {
+    setLocalSearchResults(searchResults);
+  }, [searchResults]);
+
+  const showNotification = (type: 'error' | 'success', message: string) => {
+    setNotification({ type, message, visible: true });
+    setTimeout(() => setNotification({ ...notification, visible: false }), 3000);
+  };
 
   const handleAcceptRequest = async (userId: string) => {
     try {
       await createContact(userId);
-      setSearchResults((prev) => ({ ...prev, [userId]: null }));
-      setNotifications((prev) => prev.filter((id) => id !== userId));
+      setLocalSearchResults((prev) => ({ ...prev, [userId]: null }));
       showNotification('success', 'Contact request accepted successfully.');
     } catch (error) {
-      handleError('Failed to create contact', error);
+      console.error('Failed to create contact:', error);
+      showNotification('error', 'Failed to accept contact request.');
     }
   };
 
   const handleDeclineRequest = async (userId: string) => {
     try {
       await declineContactRequest(userId);
-      setNotifications((prev) => prev.filter((id) => id !== userId));
+      setLocalSearchResults((prev) => ({ ...prev, [userId]: null }));
       onDecline(); // Decrease the notification count
       showNotification('success', 'Contact request declined successfully.');
     } catch (error) {
-      handleError('Failed to decline contact request', error);
+      console.error('Failed to decline contact request:', error);
+      showNotification('error', 'Failed to decline contact request.');
     }
   };
 
-  const showNotification = (type: 'error' | 'success', message: string) => {
-    setNotification({ type, message, visible: true });
-  };
-
-  const handleError = (defaultMessage: string, error: unknown) => {
-    console.error(defaultMessage, error);
-    const message =
-      ((error as AxiosError).response?.data as { error: string })?.error ||
-      'An error occurred. Please try again.';
-    showNotification('error', message);
-  };
-
-  useEffect(() => {
-    const fetchAvatars = async () => {
-      const avatarPromises = notifications.map(async (userId) => {
-        if (!cachedAvatars.current[userId]) {
-          const avatar = await getContactAvatar(userId);
-          const avatarBlob = avatar as unknown as Blob;
-          const avatarObjectUrl = URL.createObjectURL(avatarBlob);
-          cachedAvatars.current[userId] = avatarObjectUrl;
-        }
-        return { userId, avatarObjectUrl: cachedAvatars.current[userId] };
-      });
-  
-      const avatarResults = await Promise.all(avatarPromises);
-      const avatarMap = avatarResults.reduce((acc, { userId, avatarObjectUrl }) => {
-        acc[userId] = avatarObjectUrl;
-        return acc;
-      }, {} as { [key: string]: string });
-  
-      setAvatars(avatarMap);
-    };
-  
-    fetchAvatars();
-  }, [notifications]);
+  if (isLoading) return <div>Loading...</div>;
+  if (error || notificationsError || usersError) return <div>Error loading notifications</div>;
 
   return (
-    <Paper
-      sx={{
-        position: 'absolute',
-        bottom: 50,
-        right: 0,
-        width: 320,
-        maxHeight: 400,
-        overflowY: 'auto',
-        padding: 2,
-        boxShadow: 3,
-        borderRadius: 2,
-      }}
-    >
-      <List sx={{ padding: 0 }}>
+    <div className="notification-dropdown">
+      {notification.visible && (
+        <div className={`notification ${notification.type}`}>
+          {notification.message}
+        </div>
+      )}
+      <List>
         {notifications.map((userId) => {
-          const user = searchResults[userId];
+          const user = localSearchResults[userId];
           return (
-            <ListItem
-              key={userId}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: 1,
-                borderBottom: '1px solid #e0e0e0',
-              }}
-            >
+            <ListItem key={userId} className="notification-item">
+              <Avatar src={avatars[userId] || ''} />
               {user ? (
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Avatar
-                    src={avatars[userId] || undefined}
-                    alt={user.name}
-                    sx={{ marginRight: 2, width: 40, height: 40 }}
-                  />
+                <Box>
                   <ListItemText
                     primary={user.name}
                     secondary={`@${user.username}`}
@@ -147,27 +102,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ onClose, on
           );
         })}
       </List>
-      <Button
-        onClick={onClose}
-        fullWidth
-        sx={{
-          marginTop: 2,
-          '&:hover': {
-            backgroundColor: '#1976d2',
-            color: '#fff',
-          },
-        }}
-      >
+      <Button onClick={onClose} fullWidth>
         Close
       </Button>
-      {notification.visible && (
-        <Notification
-          type={notification.type}
-          message={notification.message}
-          onClose={() => setNotification((prev) => ({ ...prev, visible: false }))}
-        />
-      )}
-    </Paper>
+    </div>
   );
 };
 

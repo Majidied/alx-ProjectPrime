@@ -9,7 +9,7 @@ interface UserBarProps {
 }
 
 const UserBar: React.FC<UserBarProps> = ({ avatarUrl, recipientId, handleBackClick }) => {
-  const contact = useContact(recipientId);
+  const {contact, isLoading} = useContact(recipientId);
   
 
   return (
@@ -22,7 +22,7 @@ const UserBar: React.FC<UserBarProps> = ({ avatarUrl, recipientId, handleBackCli
       )}
       <div className="flex items-center space-x-4">
         <Avatar src={avatarUrl ?? '/path/to/default-avatar.png'} />
-        <h1 className="text-xl font-semibold">{contact?.name || 'Unknown'}</h1>
+        <h1 className="text-xl font-semibold">{isLoading ? 'Loading...' : (contact?.name ? contact.name : 'Unknown')}</h1>
       </div>
       <div className="flex space-x-2">
         <IconButton color="primary">

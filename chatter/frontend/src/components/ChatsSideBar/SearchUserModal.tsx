@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
-import { sendContactRequest } from '../../utils/Contact';
+import { sendContactRequest } from '../../api/contactsApi';
 import Notification from '../Notification/Notification';
 import { AxiosError } from 'axios';
 import { useUserSearch } from '../../hooks/useUserSearch';
@@ -26,8 +26,20 @@ interface SearchUserModalProps {
 }
 
 const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
-  const { searchTerm, setSearchTerm, searchResult, handleSearch } = useUserSearch();
+  const {
+    searchTerm,
+    setSearchTerm,
+    searchResult,
+    isLoading,
+    error,
+    refetch,
+  } = useUserSearch();
   const searchAvatar = useAvatar(searchResult?._id || '');
+
+  const handleSearch = () => {
+    // Trigger the search logic here
+    setSearchTerm(searchTerm);
+  };
   const [notification, setNotification] = useState({
     type: 'error',
     message: '',
@@ -47,8 +59,8 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
       console.error('Failed to send friend request:', error);
       setNotification({
         type: 'warning',
-        message: ((error as AxiosError).response?.data as { error: string })?.error || 
-                  'An error occurred. Please try again.',
+        message: ((error as AxiosError).response?.data as { error: string })?.error ||
+          'An error occurred. Please try again.',
         visible: true,
       });
     }
@@ -71,6 +83,15 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
           </IconButton>
         </Box>
         <List className="mt-4">
+          {isLoading && <div className='h-full flex justify-center'>Loading...</div>}
+            {error && <div className='flex flex-col items-center justify-center w-full'>
+            <div className='text-center'>
+              Error: {error.message}
+            </div>
+            <Button onClick={() => refetch()} color="primary" className='mt-2'>
+              Reload
+            </Button>
+            </div>}
           {searchResult && (
             <ListItem
               key={searchResult._id}
@@ -84,7 +105,7 @@ const SearchUserModal: React.FC<SearchUserModalProps> = ({ open, onClose }) => {
               }
             >
               <Avatar
-                src={searchAvatar || undefined}
+                src={searchAvatar.avatarUrl || undefined}
                 alt={searchResult.name}
                 sx={{ marginRight: '16px' }}
               />

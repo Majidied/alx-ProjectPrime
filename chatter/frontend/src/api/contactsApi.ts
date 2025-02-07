@@ -1,17 +1,4 @@
-import axios from 'axios';
-
-/**
- * Represents a contact.
- */
-export interface Contact {
-  avatar: string;     // URL or path to the contact's avatar image
-  name: string;       // Name of the contact
-  message: string;    // Last message sent or received from the contact
-  time: string;       // Timestamp of the last message
-  _id: string;        // Unique identifier for the contact
-  userId: string;     // ID of the user associated with this contact
-  contactId: string;  // ID of the contact person
-}
+import apiClient from "./apiClinet";
 
 /**
  * Retrieves the list of all contacts for the logged-in user.
@@ -19,13 +6,8 @@ export interface Contact {
  * @returns A promise that resolves to the list of contacts.
  */
 export const getContacts = async () => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.get('/api/contacts/get', { headers });
+  const response = await apiClient.get('/contacts/get');
   return response.data; // Returns the list of contacts
 };
 
@@ -36,13 +18,8 @@ export const getContacts = async () => {
  * @returns A promise that resolves to the contact's details.
  */
 export const getContactById = async (id: string) => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.get(`/api/contacts/get/${id}`, { headers });
+  const response = await apiClient.get(`/contacts/get/${id}`);
   return response.data; // Returns the details of the contact
 }
 
@@ -53,13 +30,8 @@ export const getContactById = async (id: string) => {
  * @returns A promise that resolves to the result of the deletion operation.
  */
 export const deleteContact = async (id: string) => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.delete(`/api/contacts/delete/${id}`, { headers });
+  const response = await apiClient.delete(`/contacts/delete/${id}`);
 
   return response.data; // Returns the result of the deletion
 }
@@ -71,13 +43,8 @@ export const deleteContact = async (id: string) => {
  * @returns A promise that resolves to the result of the send request operation.
  */
 export const sendContactRequest = async (recipientId: string) => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.post('/api/contacts/send-request', { recipientId }, { headers });
+  const response = await apiClient.post('/contacts/send-request', { recipientId });
 
   return response.data; // Returns the result of the send request operation
 }
@@ -88,13 +55,7 @@ export const sendContactRequest = async (recipientId: string) => {
  * @returns A promise that resolves to the list of contact requests.
  */
 export const getContactRequests = async () => {
-  const token = localStorage.getItem('token');
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.get('/api/contacts/get-requests', { headers });
+  const response = await apiClient.get('/contacts/get-requests');
 
   return response.data; // Returns the list of contact requests
 }
@@ -106,13 +67,8 @@ export const getContactRequests = async () => {
  * @returns A promise that resolves to the result of the decline operation.
  */
 export const declineContactRequest = async (senderId: string) => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.delete(`/api/contacts/decline/${senderId}`, { headers });
+  const response = await apiClient.delete(`/contacts/decline/${senderId}`);
 
   return response.data; // Returns the result of the decline operation
 }
@@ -124,13 +80,8 @@ export const declineContactRequest = async (senderId: string) => {
  * @returns A promise that resolves to the result of the create contact operation.
  */
 export const createContact = async (contactId: string) => {
-  const token = localStorage.getItem('token');
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-
-  const response = await axios.post('/api/contacts/create', { contactId }, { headers });
+  const response = await apiClient.post('/contacts/create', { contactId });
 
   return response.data; // Returns the result of the create contact operation
 }

@@ -1,12 +1,12 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import UserBar from './ChatUserBar';
 import MessageList from './MessageList';
 import InputArea from './InputArea';
-import { useUserProfile } from '../../hooks/useUserProfile';
-import { Contact } from '../../utils/Contact';
-import { sendMessage, Message } from '../../utils/Message';
-import { useMessageContext } from '../../contexts/MessageContext';
+import { useUserProfile } from '../../hooks/useUser';
+import { Contact } from '../../models/Contact';
 import { useAvatar } from '../../hooks/useAvatar';
+import { useUnseenMessages } from '../../hooks/useMessages';
+import { useMessages } from '../../hooks/useMessages';
 
 
 interface ChatWindowProps {
@@ -19,14 +19,21 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   handleBackClick,
 }) => {
   const [message, setMessage] = useState<string>('');
-  const userProfile = useUserProfile();
-  const messageListRef = useRef<{ addMessage: (message: Message) => void }>(
-    null
-  );
-  const { setLastMessage } = useMessageContext();
-  const avatarUrl = useAvatar((contact?.userId === userProfile?._id
+  const { userProfile } = useUserProfile();
+  const { addMessage } = useMessages(contact?._id || '');
+
+  const { avatarUrl } = useAvatar((contact?.userId === userProfile?._id
     ? contact?.contactId
     : contact?.userId) as string);
+  const recipientId = contact?.contactId === userProfile?._id ? contact?.userId : contact?.contactId;
+  const { resetUnseenMessages, refetch } = useUnseenMessages(
+    contact?._id || '',
+    recipientId || ''
+  );
+
+  useEffect(() => {
+    resetUnseenMessages();
+  }, [contact, resetUnseenMessages]);
 
   const addEmoji = (emoji: { emoji: string }) => {
     setMessage((prevMessage) => prevMessage + emoji.emoji);
@@ -35,19 +42,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const handleSendMessage = async () => {
     if (userProfile && contact && message.trim()) {
       try {
-        const recipientId =
-          contact.userId === userProfile._id
-            ? contact.contactId
-            : contact.userId;
-        const sentMessage = await sendMessage(
-          userProfile._id,
-          recipientId,
-          message,
-          contact._id
-        );
-
-        messageListRef.current?.addMessage(sentMessage);
-        setLastMessage(contact._id, sentMessage); // Update last message in context
+        addMessage(userProfile._id, recipientId as string, message);
         setMessage('');
       } catch (error) {
         console.error('Failed to send message:', error);
@@ -68,7 +63,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                   ? contact.contactId
                   : contact.userId
               }
-              handleBackClick={handleBackClick}
+              handleBackClick={() => {
+                refetch();
+                handleBackClick();
+                }}
             />
           )}
           {!handleBackClick && (
@@ -85,7 +83,6 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             avatar={avatarUrl || ''}
             contactId={contact._id as string}
             ownerId={userProfile._id as string}
-            ref={messageListRef}
           />
           <InputArea
             message={message}

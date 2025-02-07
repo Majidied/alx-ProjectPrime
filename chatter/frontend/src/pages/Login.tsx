@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useLogin } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
-import { login } from '../utils/User';
 import { Input, Button, CircularProgress } from '@mui/material';
 import Notification from '../components/Notification/Notification';
 import { AxiosError } from 'axios';
 
 const Login = () => {
-  const { setToken } = useAuth();
   const navigate = useNavigate();
   const [notification, setNotification] = useState({
     type: '',
@@ -16,30 +14,35 @@ const Login = () => {
   });
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const { mutateAsync: loginMutation, isPending: isLoading} = useLogin();
 
   const handleLogin = async () => {
     try {
-      setIsLoading(true);
-      const response = await login(email, password);
-      const token = (response as { token: string })?.token;
-      if (token) {
-        setToken(token);
-        navigate('/chat', { replace: true });
-      } else {
-        throw new Error('Invalid credentials');
+      loginMutation(
+        { email, password },
+        {
+          onSuccess: () => {
+            navigate('/');
+          },
+          onError: (error: Error) => {
+            setNotification({
+              type: 'error',
+              message: error instanceof AxiosError 
+                ? error.response?.data?.message || 'Login failed'
+                : 'Login failed',
+              visible: true,
+            });
+          },
+        }
+      );
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        setNotification({
+          type: 'error',
+          message: error.response?.data?.message || 'Login failed',
+          visible: true,
+        });
       }
-    } catch (err) {
-      const errorMessage =
-        (err as AxiosError<{ error: string }>)?.response?.data?.error ||
-        'An error occurred. Please try again.';
-      setNotification({
-        type: 'error',
-        message: errorMessage,
-        visible: true,
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 

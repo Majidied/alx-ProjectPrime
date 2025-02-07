@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import socket from '../utils/socket';
-import { getContactRequests } from '../utils/Contact';
+import { getContactRequests } from '../api/contactsApi';
+import { useQuery } from '@tanstack/react-query';
+import apiClient from '../api/apiClinet';
 
 /**
  * Custom hook to manage notifications for incoming contact requests.
@@ -22,7 +24,7 @@ export const useNotifications = () => {
     sound.volume = 0.5;
 
     // Preload the sound and handle potential loading errors
-    sound.addEventListener('canplaythrough', () => {}, { once: true });
+    sound.addEventListener('canplaythrough', () => { }, { once: true });
     sound.addEventListener('error', (error) => {
       console.error('Failed to load notification sound:', error);
     });
@@ -83,3 +85,29 @@ export const useNotifications = () => {
   // Return the current notification count and the function to decrease it
   return { notifications, decreaseNotification };
 };
+
+
+
+export function useNotification(userIds: string[]) {
+  return useQuery({
+    queryKey: ['notifications', userIds],
+    queryFn: async () => {
+      const avatarPromises = userIds.map(async (userId) => {
+        const avatarBlob = await apiClient.get(`/files/${userId}`, {
+          responseType: 'blob',
+        });
+        return { userId, avatarBlob };
+      });
+
+      const results = await Promise.all(avatarPromises);
+      const avatarMap: Record<string, string> = {};
+
+      results.forEach(({ userId, avatarBlob }) => {
+        avatarMap[userId] = URL.createObjectURL(avatarBlob.data);
+      });
+
+      return avatarMap;
+    },
+    enabled: userIds.length > 0,
+  });
+}

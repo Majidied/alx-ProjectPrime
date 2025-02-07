@@ -1,6 +1,4 @@
-import { AxiosError } from 'axios';
 import { useState, useCallback } from 'react';
-import { useAuth } from '../hooks/useAuth';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Input,
@@ -9,13 +7,11 @@ import {
   AlertColor,
   CircularProgress,
 } from '@mui/material';
-import { register } from '../utils/User';
+import { useRegister } from '../hooks/useAuth';
 import Notification from '../components/Notification/Notification';
 
 const Register = () => {
-  const { setToken } = useAuth();
   const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
 
   const [notification, setNotification] = useState({
     type: '',
@@ -66,6 +62,9 @@ const Register = () => {
     [setFormData]
   );
 
+
+  const { mutate: registerUser, isPending: isLoading } = useRegister();
+
   const handleRegister = async () => {
     if (!isPasswordMatch) {
       setNotification({
@@ -105,25 +104,26 @@ const Register = () => {
       return;
     }
 
-    try {
-      setIsLoading(true);
-      const response = await register(name, username, email, password);
-
-      setToken((response as { token: string })?.token);
-      navigate('/verify', { replace: true });
-    } catch (error) {
-      console.error('Registration error:', error);
-      const errorMessage =
-        (error as AxiosError<{ error: string }>)?.response?.data?.error ||
-        'An error occurred. Please try again.';
-      setNotification({
-        type: 'error',
-        message: errorMessage,
-        visible: true,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+    const userData = { name, username, email, password };
+    registerUser(userData, {
+      onSuccess: (data) => {
+        if (data) {
+          setNotification({
+            type: 'success',
+            message: data.message,
+            visible: true,
+          });
+          navigate('/verify');
+        }
+      },
+      onError: (error) => {
+        setNotification({
+          type: 'error',
+          message: error.message,
+          visible: true,
+        });
+      },
+    });
   };
 
   return (

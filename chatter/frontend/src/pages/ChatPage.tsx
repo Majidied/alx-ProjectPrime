@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
   Grid,
   useTheme,
@@ -6,42 +6,42 @@ import {
   Typography,
   CircularProgress,
 } from '@mui/material';
-import { getContacts } from '../utils/Contact';
-import { Contact } from '../utils/Contact';
+import { Contact } from '../models/Contact';
 import { MessageProvider } from '../contexts/MessageContext';
 import ChatsSideBar from '../components/ChatsSideBar/ChatsSideBar';
 import ChatWindow from '../components/ChatWindow/ChatWindow';
 import useVerification from '../hooks/useVerification';
-import { ProfileProvider } from '../contexts/UseProfileContext';
 import SelectChat from '../assets/selectChat.png';
+import { useNavigate } from 'react-router-dom';
+
 
 function ChatPage() {
-  const [contacts, setContacts] = useState([] as Contact[]);
   const [selectedContact, setSelectedContact] = useState<Contact | null>(null);
-  const [loading, setLoading] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const navigate = useNavigate();
 
-  useVerification();
-
-  useEffect(() => {
-    const fetchContacts = async () => {
-      try {
-        const contacts = await getContacts();
-        setContacts(contacts);
-      } catch (error) {
-        console.error('Failed to fetch contacts:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContacts();
-  }, []);
+  const { isVerified, isLoading, isError } = useVerification();
 
   const handleBackClick = () => {
     setSelectedContact(null);
   };
+
+  if (isLoading) {
+    return <CircularProgress style={
+      { position: 'absolute', top: '50%', left: '50%' }
+    } />;
+  }
+
+  if (isError) {
+    return <Typography style={
+      { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}} 
+      variant="h6" color="error">Failed to verify user.</Typography>;
+  }
+
+  if (!isVerified) {
+    navigate('/verify');
+  }
 
   return (
     <Grid
@@ -49,7 +49,6 @@ function ChatPage() {
       direction={isMobile ? 'column' : 'row'}
       className="h-screen"
     >
-      <ProfileProvider>
       <MessageProvider>
         {!isMobile || !selectedContact ? (
           <Grid
@@ -64,23 +63,9 @@ function ChatPage() {
               backgroundColor: '#f5f5f5',
             }}
           >
-            {loading ? (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  height: '100%',
-                }}
-              >
-                <CircularProgress />
-              </div>
-            ) : (
-              <ChatsSideBar
-                contacts={contacts}
-                onSelectContact={setSelectedContact}
-              />
-            )}
+            <ChatsSideBar
+              onSelectContact={setSelectedContact}
+            />
           </Grid>
         ) : null}
 
@@ -123,7 +108,6 @@ function ChatPage() {
           </Grid>
         ) : null}
       </MessageProvider>
-      </ProfileProvider>
     </Grid>
   );
 }

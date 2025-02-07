@@ -1,21 +1,103 @@
-import { useContext } from 'react';
-import { AuthContext } from '../provider/AuthProvider';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import apiClient from '../api/apiClinet';
 
-/**
- * Custom hook to access the authentication context.
- *
- * @returns The current authentication context, including the token and the setToken function.
- * @throws An error if the hook is used outside of an AuthProvider.
- */
 export const useAuth = () => {
-  // Retrieve the authentication context using useContext
-  const context = useContext(AuthContext);
+  const token = localStorage.getItem('token');
 
-  // If the context is null, it means that useAuth is being used outside of an AuthProvider
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  return { token };
+}
 
-  // Return the context, which contains the authentication token and setToken function
-  return context;
+export const useLogin = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+      mutationFn: async (credentials: {email: string, password: string}) => {
+          const { data } = await apiClient.post('/users/login', { ...credentials });
+          localStorage.setItem('token', data?.token);
+          return data;
+      },
+      onSuccess: () => {
+          queryClient.invalidateQueries({ queryKey: ['auth'] });
+      },
+  });
 };
+
+interface FormData {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+}
+
+export const useRegister = () => {
+
+  return useMutation({
+    mutationFn: async (credentials: FormData) => {
+      const response = await apiClient.post("/users/register", credentials);
+      if (!response?.data) {
+        throw new Error("Failed to register user.");
+      }
+      return response.data;
+    },
+    onSuccess: (data) => {
+      localStorage.setItem('token', data?.token);
+    }
+  });
+};
+
+export const useLogout = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+      mutationFn: async () => {
+          localStorage.removeItem('token');
+          await queryClient.invalidateQueries({ queryKey: ['auth'] });
+      },
+  });    
+};
+
+
+export const useVerify = () => {
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (token: string) => {
+      const response = await apiClient.get(`/users/verify/${token}`);
+      return response.data;
+    }
+  });
+
+  return { mutate, isLoading: isPending, isError, error };
+};
+
+export const useForgotPassword = () => {
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (email: string) => {
+      const response = await apiClient.post('/users/forgot-password', { email });
+      return response.data;
+    }
+  });
+
+  return { mutate, isLoading: isPending, isError, error };
+};
+
+export const useResetPassword = () => {
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (data: unknown) => {
+      const response = await apiClient.post('/users/reset-password', data);
+      return response.data;
+    }
+  });
+
+  return { mutate, isLoading: isPending, isError, error };
+};
+
+export const useUpdateProfile = () => {
+  const { mutate, isPending, isError, error } = useMutation({
+    mutationFn: async (data: unknown) => {
+      const response = await apiClient.put('/users/update-profile', data);
+      return response.data;
+    }
+  });
+
+  return { mutate, isLoading: isPending, isError, error };
+};
+
